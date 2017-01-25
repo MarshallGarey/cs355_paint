@@ -3,6 +3,7 @@ package cs355.model;
 import com.sun.org.apache.xpath.internal.operations.Mod;
 import cs355.controller.PaintController;
 import cs355.model.drawing.*;
+import cs355.model.drawing.Rectangle;
 import cs355.model.drawing.Shape;
 import cs355.solution.CS355;
 
@@ -146,7 +147,8 @@ public class Model extends CS355Drawing {
         }
 
         // Modify a shape.
-//        CS355Drawing.logMessage("Modify shape: " + selectedTool.toString());
+        // The shape should always match the selectedTool; if it doesn't, then I've done something wrong.
+        // The print statements are to help me debug.
         switch (selectedTool) {
             case LINE:
                 if (s instanceof Line)
@@ -160,6 +162,12 @@ public class Model extends CS355Drawing {
                 else
                     CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a square");
                 break;
+            case RECTANGLE:
+                if (s instanceof Rectangle)
+                    modifyRectangle(s, e, drawStartingPoint);
+                else
+                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a rectangle");
+                break;
             default:
                 break;
         }
@@ -168,17 +176,53 @@ public class Model extends CS355Drawing {
         updateObservers();
     }
 
-    /**
-     * @param p1 Point 1.
-     * @param p2 Point 2.
-     * @return The distance between the two points.
-     */
-    private double findDistance(Point2D.Double p1, Point2D.Double p2) {
-        // Distance formula.
-        return Math.sqrt( // Square root of
-                ((p1.getX() - p2.getX()) * (p1.getX() - p2.getX())) + // Square of the difference in X plus
-                ((p1.getY() - p2.getY()) * (p1.getY() - p2.getY())) // Square of the difference in Y
-        );
+    private Point2D.Double findUpperLeft(MouseEvent e, Point2D.Double drawStartingPoint, double width, double height) {
+        Point2D.Double upperLeft = new Point2D.Double();
+
+        // Find which corner of the rectangle or square is the upper left corner.
+        // Keep in mind the coordinate system: (0,0) is top-left of the canvas.
+
+        // Mouse is above starting corner.
+        if (e.getY() < drawStartingPoint.y) {
+            // Set the upper-left corner above the starting corner by the size.
+            upperLeft.y = drawStartingPoint.y - height;
+
+            // If the mouse is to the left, set upper-left corner left of the starting corner by the size.
+            if (e.getX() < drawStartingPoint.x) {
+                upperLeft.x = drawStartingPoint.x - width;
+            }
+            // Otherwise, the upper-left corner has the same x position as the starting corner.
+            else {
+                upperLeft.x = drawStartingPoint.x;
+            }
+        }
+        // Mouse is below starting corner.
+        else {
+            upperLeft.y = drawStartingPoint.y;
+            // If mouse event is left of current upper left corner,
+            // set the upper-left corner left of the starting corner by the size.
+            if (e.getX() < drawStartingPoint.x) {
+                upperLeft.x = drawStartingPoint.x - width;
+            }
+            // Otherwise, the starting point is the upper-left corner.
+            else {
+                upperLeft.x = drawStartingPoint.x;
+            }
+        }
+        return upperLeft;
+    }
+
+    private void modifyRectangle(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
+        Rectangle rectangle = (Rectangle) s;
+
+        // Find the size: the smaller of the difference in X or Y.
+        double width = Math.abs(drawStartingPoint.x - e.getX());
+        double height = Math.abs(drawStartingPoint.y - e.getY());
+        rectangle.setWidth(width);
+        rectangle.setHeight(height);
+
+        // Find which corner is upper left (it can change).
+        rectangle.setUpperLeft(findUpperLeft(e, drawStartingPoint, width, height));
     }
 
     private void modifySquare(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
@@ -191,35 +235,7 @@ public class Model extends CS355Drawing {
         square.setSize(size);
 
         // Find which corner is upper left (it can change).
-        // Keep in mind the coordinate system: (0,0) is top-left of the canvas.
-
-        // Mouse is above starting corner.
-        if (e.getY() < drawStartingPoint.y) {
-            // Set the upper-left corner above the starting corner by the size.
-            square.getUpperLeft().y = drawStartingPoint.y - size;
-
-
-            // If the mouse is to the left, set upper-left corner left of the starting corner by the size.
-            if (e.getX() < drawStartingPoint.x) {
-                square.getUpperLeft().x = drawStartingPoint.x - size;
-            }
-            // Otherwise, the upper-left corner has the same x position as the starting corner.
-            else {
-                square.getUpperLeft().x = drawStartingPoint.x;
-            }
-        }
-        // Mouse is below starting corner.
-        else {
-            // If mouse event is left of current upper left corner,
-            // set the upper-left corner left of the starting corner by the size.
-            if (e.getX() < drawStartingPoint.x) {
-                square.getUpperLeft().x = drawStartingPoint.x - size;
-            }
-            // Otherwise, the starting point is the upper-left corner.
-            else {
-                square.getUpperLeft().setLocation(drawStartingPoint.x, drawStartingPoint.y);
-            }
-        }
+        square.setUpperLeft(findUpperLeft(e, drawStartingPoint, size, size));
     }
 
     private void modifyLine(Shape s, MouseEvent e) {
@@ -234,6 +250,8 @@ public class Model extends CS355Drawing {
                 return makeNewLine(e, currentColor);
             case SQUARE:
                 return makeNewSquare(e, currentColor);
+            case RECTANGLE:
+                return makeNewRectangle(e, currentColor);
             default:
                 // indicate that no shape was added
                 return -1;
@@ -243,6 +261,11 @@ public class Model extends CS355Drawing {
     private int makeNewSquare(MouseEvent e, Color currentColor) {
         Point2D.Double upperLeft = new Point2D.Double(e.getX(), e.getY());
         return Model.getModel().addShape(new Square(currentColor, upperLeft, 0));
+    }
+
+    private int makeNewRectangle(MouseEvent e, Color currentColor) {
+        Point2D.Double upperLeft = new Point2D.Double(e.getX(), e.getY());
+        return Model.getModel().addShape(new Rectangle(currentColor, upperLeft, 0, 0));
     }
 
     private int makeNewLine(MouseEvent e, Color currentColor) {
@@ -256,24 +279,17 @@ public class Model extends CS355Drawing {
         return Model.getModel().addShape(new Line(currentColor, start, end));
     }
 
-//    public void finishShape(int currentShapeIndex, PaintController.Tool selectedTool, MouseEvent e) {
-//        Point2D.Double end = null;
-//        if ((e.getX() >= 0) && (e.getY() < 0)) {
-//            end = new Point2D.Double(e.getX(), e.getY());
-//        }
-//
-//        switch (selectedTool) {
-//            case LINE:
-//                Line l = (Line)shapes.get(currentShapeIndex);
-//                if (end != null) {
-//                    modifyShape();
-//                }
-//                else {
-//
-//                }
-//                break;
-//            default:
-//                break;
-//        }
-//    }
+    /**
+     * @param p1 Point 1.
+     * @param p2 Point 2.
+     * @return The distance between the two points.
+     */
+    private double findDistance(Point2D.Double p1, Point2D.Double p2) {
+        // Distance formula.
+        return Math.sqrt( // Square root of
+                ((p1.getX() - p2.getX()) * (p1.getX() - p2.getX())) + // Square of the difference in X plus
+                        ((p1.getY() - p2.getY()) * (p1.getY() - p2.getY())) // Square of the difference in Y
+        );
+    }
+
 }

@@ -3,6 +3,8 @@ package cs355.view;
 import cs355.GUIFunctions;
 import cs355.model.Model;
 import cs355.model.drawing.*;
+import cs355.model.drawing.Rectangle;
+import org.w3c.dom.css.Rect;
 
 import java.awt.*;
 import java.util.Observable;
@@ -40,7 +42,17 @@ public class View implements ViewRefresher, Observer {
                         (int)square.getUpperLeft().x, // Upper left x
                         (int)square.getUpperLeft().y, // Upper left y
                         (int)square.getSize(), // width
-                        (int)square.getSize()); // height
+                        (int)square.getSize() // height
+                );
+            }
+            else if (s instanceof Rectangle) {
+                Rectangle rect = (Rectangle) s;
+                g2d.drawRect(
+                        (int) rect.getUpperLeft().x, // Upper left x
+                        (int)rect.getUpperLeft().y, // Upper left y
+                        (int)rect.getWidth(), // width
+                        (int)rect.getHeight() // height
+                );
             }
         }
     }
