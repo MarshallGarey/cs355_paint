@@ -1,6 +1,8 @@
 package cs355.solution;
 
 import cs355.GUIFunctions;
+import cs355.controller.PaintController;
+import cs355.view.View;
 
 /**
  * This is the main class. The program starts here.
@@ -16,7 +18,9 @@ public class CS355 {
 	public static void main(String[] args) {
 
 		// Fill in the parameters below with your controller and view.
-		GUIFunctions.createCS355Frame(null, null);
+		PaintController controller = new PaintController();
+		View view = new View();
+		GUIFunctions.createCS355Frame(controller, view);
 
 		GUIFunctions.refresh();
 	}
