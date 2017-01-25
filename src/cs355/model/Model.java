@@ -1,8 +1,12 @@
 package cs355.model;
 
+import cs355.controller.PaintController;
 import cs355.model.drawing.CS355Drawing;
+import cs355.model.drawing.Line;
 import cs355.model.drawing.Shape;
 
+import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -57,6 +61,7 @@ public class Model extends CS355Drawing {
     @Override
     public int addShape(Shape s) {
         shapes.add(s);
+        setChanged();
         return shapes.indexOf(s);
     }
 
@@ -123,4 +128,49 @@ public class Model extends CS355Drawing {
         this.setChanged();
         this.notifyObservers();
     }
+
+    public void modifyShape(int currentShapeIndex, PaintController.Tool selectedTool, MouseEvent e) {
+        // Do nothing if the shape is invalid.
+        Shape s = null;
+        try {
+            s = shapes.get(currentShapeIndex);
+        } catch (Exception exc) {
+            exc.printStackTrace();
+            return;
+        }
+
+        // Modify a shape.
+        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, "Modify shape");
+        switch (selectedTool) {
+            case LINE:
+                Line l = (Line)s;//shapes.get(currentShapeIndex);
+                Point2D.Double end = new Point2D.Double(e.getX(), e.getY());
+                l.setEnd(end);
+                updateObservers();
+                break;
+            default:
+                break;
+        }
+    }
+
+//    public void finishShape(int currentShapeIndex, PaintController.Tool selectedTool, MouseEvent e) {
+//        Point2D.Double end = null;
+//        if ((e.getX() >= 0) && (e.getY() < 0)) {
+//            end = new Point2D.Double(e.getX(), e.getY());
+//        }
+//
+//        switch (selectedTool) {
+//            case LINE:
+//                Line l = (Line)shapes.get(currentShapeIndex);
+//                if (end != null) {
+//                    modifyShape();
+//                }
+//                else {
+//
+//                }
+//                break;
+//            default:
+//                break;
+//        }
+//    }
 }
