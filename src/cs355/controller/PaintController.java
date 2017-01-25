@@ -25,7 +25,12 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     // Currently selected color.
     private Color currentColor;
+
+    // Index of currently selected shape. When negative, that means no shape is selected.
     private int currentShapeIndex = -1;
+
+    // Starting point of drawing.
+    private Point2D.Double drawStartingPoint;
 
     // Currently selected tool.
     public enum Tool {
@@ -218,11 +223,10 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
         // Do something depending on the selected tool.
         switch (selectedTool) {
-            // TODO: perhaps for every shape, I'll just make a single call, like this:
-            // case LINE: case SQUARE: ... case TRIANGLE:
-            //     currentShapeIndex = Model.getModel().makeNewShape(selectedTool, e);
-            case LINE:
-                makeNewLine(e);
+            // For every shape, just create a new shape.
+            case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE: case TRIANGLE:
+                currentShapeIndex = Model.getModel().makeNewShape(selectedTool, e, currentColor);
+                drawStartingPoint = new Point2D.Double(e.getX(), e.getY());
                 break;
             default:
                 Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
@@ -235,8 +239,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         GUIFunctions.printf("Mouse released");
         // Do something depending on the selected tool.
         switch (selectedTool) {
-            case LINE:
-                Model.getModel().modifyShape(currentShapeIndex, selectedTool, e);
+            case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE: case TRIANGLE:
+                Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, drawStartingPoint);
                 currentShapeIndex = -1;
                 break;
             default:
@@ -252,12 +256,12 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mouseExited(MouseEvent e) {
-
+        GUIFunctions.printf("");
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        GUIFunctions.printf("Mouse dragged");
+//        GUIFunctions.printf("Mouse dragged");
         mouseMoved(e);
     }
 
@@ -265,9 +269,9 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     public void mouseMoved(MouseEvent e) {
         GUIFunctions.printf("Mouse moved");
         switch(selectedTool) {
-            case LINE:
+            case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE: case TRIANGLE:
                 if (currentShapeIndex >= 0)
-                    Model.getModel().modifyShape(currentShapeIndex, selectedTool, e);
+                    Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, drawStartingPoint);
                 break;
             default:
                 break;
@@ -280,25 +284,15 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         return (e.getX() > 0) && (e.getY() > 0);
     }
 
-    private void makeNewLine(MouseEvent e) {
-        // Endpoints: start and end are in the same place, initially.
-        Point2D.Double start = new Point2D.Double(e.getX(), e.getY());
-        Point2D.Double end = new Point2D.Double(e.getX(), e.getY());
-
-        // Add the line to the model.
-        currentShapeIndex = Model.getModel().addShape(new Line(currentColor, start, end));
-    }
-
-
-
-    private void finishLine(MouseEvent e) {
-        Point2D.Double end = new Point2D.Double(e.getX(), e.getY());
-    }
-
     // Getters and Setters
 
     public Color getCurrentColor() {
         return currentColor;
+    }
+
+    public void setCurrentColor(Color currentColor) {
+        // Call this function, which also notifies the GUI to update.
+        colorButtonHit(currentColor);
     }
 
     public Tool getSelectedTool() {

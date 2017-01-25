@@ -105,6 +105,10 @@ public abstract class CS355Drawing extends Observable {
 
 	// Implemented methods.
 
+	public static void logMessage(String format) {
+		Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, format);
+	}
+
 	/**
 	 * Opens a drawing from a Json file and populate
 	 * this drawing with the shapes in that file.

@@ -1,10 +1,12 @@
 package cs355.model;
 
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import cs355.controller.PaintController;
-import cs355.model.drawing.CS355Drawing;
-import cs355.model.drawing.Line;
+import cs355.model.drawing.*;
 import cs355.model.drawing.Shape;
+import cs355.solution.CS355;
 
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -129,7 +131,11 @@ public class Model extends CS355Drawing {
         this.notifyObservers();
     }
 
-    public void modifyShape(int currentShapeIndex, PaintController.Tool selectedTool, MouseEvent e) {
+    public void modifyShape(int currentShapeIndex, // Where the shape is in the shapes list
+                            PaintController.Tool selectedTool, // Which shape
+                            MouseEvent e, // Contains position of the mouse
+                            Point2D.Double drawStartingPoint // Starting position of drawing, needed for some shapes
+    ) {
         // Do nothing if the shape is invalid.
         Shape s = null;
         try {
@@ -140,17 +146,114 @@ public class Model extends CS355Drawing {
         }
 
         // Modify a shape.
-        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, "Modify shape");
+//        CS355Drawing.logMessage("Modify shape: " + selectedTool.toString());
         switch (selectedTool) {
             case LINE:
-                Line l = (Line)s;//shapes.get(currentShapeIndex);
-                Point2D.Double end = new Point2D.Double(e.getX(), e.getY());
-                l.setEnd(end);
-                updateObservers();
+                if (s instanceof Line)
+                    modifyLine(s, e);
+                else
+                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a line");
+                break;
+            case SQUARE:
+                if (s instanceof Square)
+                    modifySquare(s, e, drawStartingPoint);
+                else
+                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a square");
                 break;
             default:
                 break;
         }
+
+        // Notify view of the change.
+        updateObservers();
+    }
+
+    /**
+     * @param p1 Point 1.
+     * @param p2 Point 2.
+     * @return The distance between the two points.
+     */
+    private double findDistance(Point2D.Double p1, Point2D.Double p2) {
+        // Distance formula.
+        return Math.sqrt( // Square root of
+                ((p1.getX() - p2.getX()) * (p1.getX() - p2.getX())) + // Square of the difference in X plus
+                ((p1.getY() - p2.getY()) * (p1.getY() - p2.getY())) // Square of the difference in Y
+        );
+    }
+
+    private void modifySquare(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
+        Square square = (Square) s;
+
+        // Find the size: the smaller of the difference in X or Y.
+        double xDiff = Math.abs(drawStartingPoint.x - e.getX());
+        double yDiff = Math.abs(drawStartingPoint.y - e.getY());
+        double size = (xDiff < yDiff) ? xDiff : yDiff;
+        square.setSize(size);
+
+        // Find which corner is upper left (it can change).
+        // Keep in mind the coordinate system: (0,0) is top-left of the canvas.
+
+        // Mouse is above starting corner.
+        if (e.getY() < drawStartingPoint.y) {
+            // Set the upper-left corner above the starting corner by the size.
+            square.getUpperLeft().y = drawStartingPoint.y - size;
+
+
+            // If the mouse is to the left, set upper-left corner left of the starting corner by the size.
+            if (e.getX() < drawStartingPoint.x) {
+                square.getUpperLeft().x = drawStartingPoint.x - size;
+            }
+            // Otherwise, the upper-left corner has the same x position as the starting corner.
+            else {
+                square.getUpperLeft().x = drawStartingPoint.x;
+            }
+        }
+        // Mouse is below starting corner.
+        else {
+            // If mouse event is left of current upper left corner,
+            // set the upper-left corner left of the starting corner by the size.
+            if (e.getX() < drawStartingPoint.x) {
+                square.getUpperLeft().x = drawStartingPoint.x - size;
+            }
+            // Otherwise, the starting point is the upper-left corner.
+            else {
+                square.getUpperLeft().setLocation(drawStartingPoint.x, drawStartingPoint.y);
+            }
+        }
+    }
+
+    private void modifyLine(Shape s, MouseEvent e) {
+        Line l = (Line)s;
+        Point2D.Double end = new Point2D.Double(e.getX(), e.getY());
+        l.setEnd(end);
+    }
+
+    public int makeNewShape(PaintController.Tool selectedTool, MouseEvent e, Color currentColor) {
+        switch (selectedTool) {
+            case LINE:
+                return makeNewLine(e, currentColor);
+            case SQUARE:
+                return makeNewSquare(e, currentColor);
+            default:
+                // indicate that no shape was added
+                return -1;
+        }
+    }
+
+    private int makeNewSquare(MouseEvent e, Color currentColor) {
+        Point2D.Double upperLeft = new Point2D.Double(e.getX(), e.getY());
+        return Model.getModel().addShape(new Square(currentColor, upperLeft, 0));
+    }
+
+    private int makeNewLine(MouseEvent e, Color currentColor) {
+        // Endpoints: start and end are in the same place, initially.
+        Point2D.Double start = new Point2D.Double(e.getX(), e.getY());
+        Point2D.Double end = new Point2D.Double(e.getX(), e.getY());
+
+        // Add the line to the model.
+        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+                "New line color = " + currentColor.toString());
+        return Model.getModel().addShape(new Line(currentColor, start, end));
     }
 
 //    public void finishShape(int currentShapeIndex, PaintController.Tool selectedTool, MouseEvent e) {

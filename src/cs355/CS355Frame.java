@@ -1,6 +1,7 @@
 package cs355;
 
 import cs355.controller.CS355Controller;
+import cs355.controller.PaintController;
 import cs355.model.image.CS355Image;
 import cs355.view.ViewRefresher;
 import java.awt.Color;
@@ -78,6 +79,11 @@ class CS355Frame extends javax.swing.JFrame implements KeyListener, MouseListene
 		instance = new CS355Frame(c, v);
 		instance.start();
 		instance.setVisible(true);
+
+		// Set current color on GUI
+        PaintController ctrl = (PaintController) c;
+        instance.selectedColor = Color.BLUE;
+		ctrl.setCurrentColor(instance.selectedColor);
 	}
 
 	/**
