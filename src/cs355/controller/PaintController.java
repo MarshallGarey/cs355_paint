@@ -1,5 +1,8 @@
 package cs355.controller;
 
+import cs355.model.Model;
+import cs355.model.drawing.CS355Drawing;
+
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -110,12 +113,12 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void saveDrawing(File file) {
-
+        Model.getModel().save(file);
     }
 
     @Override
     public void openDrawing(File file) {
-
+        Model.getModel().open(file);
     }
 
     @Override
