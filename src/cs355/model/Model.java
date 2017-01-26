@@ -160,31 +160,36 @@ public class Model extends CS355Drawing {
                 if (s instanceof Line)
                     modifyLine(s, e);
                 else
-                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a line");
+                    Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
+                            "ERROR in modifyShape: shape isn't a line");
                 break;
             case SQUARE:
                 if (s instanceof Square)
                     modifySquare(s, e, drawStartingPoint);
                 else
-                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a square");
+                    Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
+                            "ERROR in modifyShape: shape isn't a square");
                 break;
             case RECTANGLE:
                 if (s instanceof Rectangle)
                     modifyRectangle(s, e, drawStartingPoint);
                 else
-                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a rectangle");
+                    Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
+                            "ERROR in modifyShape: shape isn't a rectangle");
                 break;
             case CIRCLE:
                 if (s instanceof Circle)
                     modifyCircle(s, e, drawStartingPoint);
                 else
-                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a circle");
+                    Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
+                            "ERROR in modifyShape: shape isn't a circle");
                 break;
             case ELLIPSE:
                 if (s instanceof Ellipse)
                     modifyEllipse(s, e, drawStartingPoint);
                 else
-                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't an ellipse");
+                    Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
+                            "ERROR in modifyShape: shape isn't an ellipse");
                 break;
             default:
                 break;

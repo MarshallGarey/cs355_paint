@@ -81,9 +81,9 @@ class CS355Frame extends javax.swing.JFrame implements KeyListener, MouseListene
 		instance.setVisible(true);
 
 		// Set current color on GUI
-        PaintController ctrl = (PaintController) c;
-        instance.selectedColor = Color.BLUE;
-		ctrl.setCurrentColor(instance.selectedColor);
+//        PaintController ctrl = (PaintController) c;
+//        instance.selectedColor = Color.BLUE;
+//		ctrl.setCurrentColor(instance.selectedColor);
 	}
 
 	/**

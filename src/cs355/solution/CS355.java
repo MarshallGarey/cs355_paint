@@ -4,6 +4,8 @@ import cs355.GUIFunctions;
 import cs355.controller.PaintController;
 import cs355.view.View;
 
+import java.awt.*;
+
 /**
  * This is the main class. The program starts here.
  * Make you add code below to initialize your model,
@@ -23,5 +25,8 @@ public class CS355 {
 		GUIFunctions.createCS355Frame(controller, view);
 
 		GUIFunctions.refresh();
+
+		// Initialize color
+        controller.colorButtonHit(Color.BLUE);
 	}
 }
