@@ -1,11 +1,9 @@
 package cs355.model;
 
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import cs355.controller.PaintController;
 import cs355.model.drawing.*;
 import cs355.model.drawing.Rectangle;
 import cs355.model.drawing.Shape;
-import cs355.solution.CS355;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -132,6 +130,13 @@ public class Model extends CS355Drawing {
         this.notifyObservers();
     }
 
+    /*
+     * The following methods are all modifyShape methods.
+     * They are used when drawing a shape.
+     * These methods modify the dimensions of the shape appropriately, according to the location of the mouse.
+     * The modifyShape method figures out which shape to modify.
+     */
+
     public void modifyShape(int currentShapeIndex, // Where the shape is in the shapes list
                             PaintController.Tool selectedTool, // Which shape
                             MouseEvent e, // Contains position of the mouse
@@ -167,6 +172,18 @@ public class Model extends CS355Drawing {
                     modifyRectangle(s, e, drawStartingPoint);
                 else
                     CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a rectangle");
+                break;
+            case CIRCLE:
+                if (s instanceof Circle)
+                    modifyCircle(s, e, drawStartingPoint);
+                else
+                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't a circle");
+                break;
+            case ELLIPSE:
+                if (s instanceof Ellipse)
+                    modifyEllipse(s, e, drawStartingPoint);
+                else
+                    CS355Drawing.logMessage("ERROR in modifyShape: shape isn't an ellipse");
                 break;
             default:
                 break;
@@ -212,10 +229,45 @@ public class Model extends CS355Drawing {
         return upperLeft;
     }
 
+    private void modifyEllipse(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
+        Ellipse ellipse = (Ellipse) s;
+
+        // Find the radius: use the differences in X and Y.
+        double width = Math.abs(drawStartingPoint.x - e.getX());
+        double height = Math.abs(drawStartingPoint.y - e.getY());
+        ellipse.setWidth(width);
+        ellipse.setHeight(height);
+
+        // Find which corner is upper left.
+        Point2D upperLeft = findUpperLeft(e, drawStartingPoint, width, height);
+
+        // Now set the center of the circle.
+        ellipse.getCenter().x = upperLeft.getX() + (width / 2);
+        ellipse.getCenter().y = upperLeft.getY() + (height / 2);
+    }
+
+    private void modifyCircle(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
+        Circle circle = (Circle) s;
+
+        // Find the radius: use the smaller of the differences in X and Y.
+        double xDiff = Math.abs(drawStartingPoint.x - e.getX());
+        double yDiff = Math.abs(drawStartingPoint.y - e.getY());
+        double diameter = (xDiff < yDiff) ? xDiff : yDiff;
+        double radius = diameter / 2;
+        circle.setRadius(radius);
+
+        // Find which corner is upper left.
+        Point2D upperLeft = findUpperLeft(e, drawStartingPoint, diameter, diameter);
+
+        // Now set the center of the circle.
+        circle.getCenter().x = upperLeft.getX() + radius;
+        circle.getCenter().y = upperLeft.getY() + radius;
+    }
+
     private void modifyRectangle(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
         Rectangle rectangle = (Rectangle) s;
 
-        // Find the size: the smaller of the difference in X or Y.
+        // Find the width and height: use the differences in X and Y.
         double width = Math.abs(drawStartingPoint.x - e.getX());
         double height = Math.abs(drawStartingPoint.y - e.getY());
         rectangle.setWidth(width);
@@ -244,6 +296,12 @@ public class Model extends CS355Drawing {
         l.setEnd(end);
     }
 
+    /*
+     * The following methods are all of the form "makeNew<NameOfShape>(MouseEvent, Color)
+     * They initialize the shape, add it to the list of shapes, and return the index of the shape in the list.
+     * The makeNewShape method figures out which shape to make. It returns the index of the shape in the list.
+     */
+
     public int makeNewShape(PaintController.Tool selectedTool, MouseEvent e, Color currentColor) {
         switch (selectedTool) {
             case LINE:
@@ -252,20 +310,34 @@ public class Model extends CS355Drawing {
                 return makeNewSquare(e, currentColor);
             case RECTANGLE:
                 return makeNewRectangle(e, currentColor);
+            case CIRCLE:
+                return makeNewCircle(e, currentColor);
+            case ELLIPSE:
+                return makeNewEllipse(e, currentColor);
             default:
                 // indicate that no shape was added
                 return -1;
         }
     }
 
+    private int makeNewCircle(MouseEvent e, Color currentColor) {
+        Point2D.Double center = new Point2D.Double(e.getX(), e.getY());
+        return addShape(new Circle(currentColor, center, 0));
+    }
+
+    private int makeNewEllipse(MouseEvent e, Color currentColor) {
+        Point2D.Double center = new Point2D.Double(e.getX(), e.getY());
+        return addShape(new Ellipse(currentColor, center, 0, 0));
+    }
+
     private int makeNewSquare(MouseEvent e, Color currentColor) {
         Point2D.Double upperLeft = new Point2D.Double(e.getX(), e.getY());
-        return Model.getModel().addShape(new Square(currentColor, upperLeft, 0));
+        return addShape(new Square(currentColor, upperLeft, 0));
     }
 
     private int makeNewRectangle(MouseEvent e, Color currentColor) {
         Point2D.Double upperLeft = new Point2D.Double(e.getX(), e.getY());
-        return Model.getModel().addShape(new Rectangle(currentColor, upperLeft, 0, 0));
+        return addShape(new Rectangle(currentColor, upperLeft, 0, 0));
     }
 
     private int makeNewLine(MouseEvent e, Color currentColor) {
@@ -274,9 +346,7 @@ public class Model extends CS355Drawing {
         Point2D.Double end = new Point2D.Double(e.getX(), e.getY());
 
         // Add the line to the model.
-        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
-                "New line color = " + currentColor.toString());
-        return Model.getModel().addShape(new Line(currentColor, start, end));
+        return addShape(new Line(currentColor, start, end));
     }
 
     /**

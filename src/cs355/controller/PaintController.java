@@ -34,7 +34,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     // Currently selected tool.
     public enum Tool {
-        NONE, COLOR, LINE, SQUARE, RECTANGLE, CIRCLE, ELLIPSE, TRIANGLE, SELECT, ZOOM_IN, ZOOM_OUT
+        NONE, LINE, SQUARE, RECTANGLE, CIRCLE, ELLIPSE, TRIANGLE, SELECT, ZOOM_IN, ZOOM_OUT
     }
     private Tool selectedTool = NONE;
 
@@ -48,7 +48,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         // Update current color indicator.
         currentColor = new Color(c.getRGB());
         GUIFunctions.changeSelectedColor(currentColor);
-        selectedTool = Tool.COLOR;
     }
 
     @Override
