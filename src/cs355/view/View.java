@@ -34,6 +34,12 @@ public class View implements ViewRefresher, Observer {
         }
     }
 
+    // TODO: finish
+    @Override
+    public void update(Observable o, Object arg) {
+        GUIFunctions.refresh();
+    }
+
     private void drawShape(Shape s, Graphics2D g2d) {
         g2d.setColor(s.getColor());
         if (s instanceof Line) {
@@ -97,9 +103,4 @@ public class View implements ViewRefresher, Observer {
         }
     }
 
-    // TODO: finish
-    @Override
-    public void update(Observable o, Object arg) {
-        GUIFunctions.refresh();
-    }
 }

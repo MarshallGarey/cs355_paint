@@ -11,6 +11,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,6 +38,13 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         NONE, LINE, SQUARE, RECTANGLE, CIRCLE, ELLIPSE, TRIANGLE, SELECT, ZOOM_IN, ZOOM_OUT
     }
     private Tool selectedTool = NONE;
+
+    // Triangles need special handling.
+    // Keep track of how many points have been selected and what they are.
+    private int triangleNumPointsSelected;
+
+    // And keep track of what the points are (for the triangle).
+    private ArrayList<Point2D.Double> trianglePoints;
 
     /**
      * Default constructor
@@ -78,6 +86,9 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     @Override
     public void triangleButtonHit() {
         selectedTool = TRIANGLE;
+
+        // Reset number of triangle points selected (to restart triangle drawing).
+        triangleNumPointsSelected = 0;
     }
 
     @Override
@@ -208,7 +219,30 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mouseClicked(MouseEvent e) {
-
+        switch (selectedTool) {
+            case TRIANGLE:
+                switch (triangleNumPointsSelected) {
+                    case 0:
+                        trianglePoints = new ArrayList<>();
+                        trianglePoints.add(new Point2D.Double(e.getX(), e.getY()));
+                        triangleNumPointsSelected++;
+                        break;
+                    case 1:
+                        trianglePoints.add(new Point2D.Double(e.getX(), e.getY()));
+                        triangleNumPointsSelected++;
+                        break;
+                    case 2:
+                        trianglePoints.add(new Point2D.Double(e.getX(), e.getY()));
+                        Model.getModel().makeNewTriangle(currentColor, trianglePoints);
+                        triangleNumPointsSelected = 0;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
@@ -223,13 +257,14 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         // Do something depending on the selected tool.
         switch (selectedTool) {
             // For every shape, just create a new shape.
-            case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE: case TRIANGLE:
+            case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
                 currentShapeIndex = Model.getModel().makeNewShape(selectedTool, e, currentColor);
                 drawStartingPoint = new Point2D.Double(e.getX(), e.getY());
                 break;
             default:
-                Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
-                        "Mouse pressed, tool = " + selectedTool.toString());
+//                Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+//                        "Mouse pressed, tool = " + selectedTool.toString());
+                break;
         }
     }
 
@@ -238,7 +273,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         GUIFunctions.printf("Mouse released");
         // Do something depending on the selected tool.
         switch (selectedTool) {
-            case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE: case TRIANGLE:
+            case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
                 Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, drawStartingPoint);
                 currentShapeIndex = -1;
                 break;

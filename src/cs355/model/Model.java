@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -347,6 +348,12 @@ public class Model extends CS355Drawing {
 
         // Add the line to the model.
         return addShape(new Line(currentColor, start, end));
+    }
+
+    public int makeNewTriangle(Color currentColor, ArrayList<Point2D.Double> points) {
+        int index = addShape(new Triangle(currentColor, points.get(0), points.get(1), points.get(2)));
+        notifyObservers();
+        return index;
     }
 
     /**
