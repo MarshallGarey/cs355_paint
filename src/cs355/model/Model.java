@@ -4,6 +4,7 @@ import cs355.controller.PaintController;
 import cs355.model.drawing.*;
 import cs355.model.drawing.Rectangle;
 import cs355.model.drawing.Shape;
+import org.w3c.dom.css.Rect;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.CRC32;
 
 /**
  * Created by Marshall on 1/24/2017.
@@ -44,7 +46,6 @@ public class Model extends CS355Drawing {
      */
     private Model() {
         shapes = new ArrayList<>();
-        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, "Model constructor");
     }
 
     /**
@@ -377,4 +378,24 @@ public class Model extends CS355Drawing {
         return index;
     }
 
+    /**
+     * Determine which (if any) shape was selected.
+     * @param screenX The x coordinate of the selection.
+     * @param screenY The y coordinate of the selection.
+     * @return The index of the selected shape, or -1 if no shape was selected.
+     */
+    public int selectShape(int screenX, int screenY) {
+        // This selected point is currently in screen coordinates. It will be translated to object coordinates
+        // when tested if it intersects with an object.
+        Point2D.Double selectedPoint = new Point2D.Double((double) screenX, (double) screenY);
+
+        // Test every shape, in forward order (most front one first, most rear one last).
+        for (int i = shapes.size() - 1; i >= 0; i--) {
+            Shape s = shapes.get(i);
+            if (s.pointInShape(selectedPoint, 4)) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }

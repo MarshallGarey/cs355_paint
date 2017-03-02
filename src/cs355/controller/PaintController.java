@@ -1,5 +1,6 @@
 package cs355.controller;
 
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import cs355.GUIFunctions;
 import cs355.model.Model;
 import cs355.model.drawing.*;
@@ -260,6 +261,21 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
                 currentShapeIndex = Model.getModel().makeNewShape(selectedTool, e, currentColor);
                 drawStartingPoint = new Point2D.Double(e.getX(), e.getY());
+                break;
+            case SELECT:
+                // Model.selectShape will return the index of the selected shape, or a negative number if the selected
+                // point was not inside any shape.
+                currentShapeIndex = Model.getModel().selectShape(e.getX(), e.getY());
+                if (currentShapeIndex >= 0) {
+                    // A shape was selected.
+                    Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+                            "Selected shape is " +
+                            Model.getModel().getShapes().get(currentShapeIndex).toString());
+                }
+                else {
+                    // The clicked point wasn't inside any shape.
+                    Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, "Selected blank space.");
+                }
                 break;
             default:
 //                Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,

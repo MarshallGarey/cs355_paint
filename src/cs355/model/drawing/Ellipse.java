@@ -74,7 +74,16 @@ public class Ellipse extends Shape {
 	 */
 	@Override
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		// Transform to object coordinates
+		Point2D selectedPoint = transformScreenToObjectCoordinates(pt);
+
+		// The intersect test for an ellipse is the following:
+		//   ((ptX-centerX)/radiusX)^2 + ((ptY-centerY)/radiusY)^2 <= 1
+		// The center is (0,0) because we've already transformed the point to object coordinates).
+		double termA = (selectedPoint.getX()) / (width/2);
+		double termB = (selectedPoint.getY()) / (height/2);
+		return ((termA * termA) + (termB * termB)) <= 1;
 	}
 
 }

@@ -1,6 +1,6 @@
 package cs355.model.drawing;
 
-import java.awt.Color;
+import java.awt.*;
 import java.awt.geom.Point2D;
 
 /**
@@ -74,16 +74,21 @@ public class Rectangle extends Shape {
 	}
 
 	/**
-	 * Add your code to do an intersection test
-	 * here. You shouldn't need the tolerance.
-	 * @param pt = the point to test against.
+	 * Do an intersection test.
+	 * @param pt = the point to test against, in screen coordinates.
 	 * @param tolerance = the allowable tolerance.
 	 * @return true if pt is in the shape,
 	 *		   false otherwise.
 	 */
 	@Override
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		// Transform to object coordinates, then test the boundaries.
+		Point2D.Double selectObjectCoordinates = transformScreenToObjectCoordinates(pt);
+		return  selectObjectCoordinates.y >= -(height / 2) && // Top
+				selectObjectCoordinates.y <= (height / 2) &&  // Bottom
+				selectObjectCoordinates.x >= -(width / 2) &&  // Left
+				selectObjectCoordinates.x <= (width / 2);     // Right
 	}
 
 }

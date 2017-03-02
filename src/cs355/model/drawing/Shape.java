@@ -1,6 +1,7 @@
 package cs355.model.drawing;
 
 import java.awt.Color;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 
 /**
@@ -76,6 +77,21 @@ public abstract class Shape {
 	 */
 	public void setRotation(double rotation) {
 		this.rotation = rotation;
+	}
+
+	/**
+	 * Transform the selection point pt to object coordinates (inverse translate, inverse rotate).
+	 * Remember that the transformation operations are performed in reverse order that I call them.
+	 * @param screenXY The selection screen xy coordinates.
+	 * @return The object xy coordinates.
+	 */
+	public Point2D.Double transformScreenToObjectCoordinates(Point2D.Double screenXY) {
+		Point2D.Double selectObjectCoordinates = new Point2D.Double();
+		AffineTransform transform = new AffineTransform();
+		transform.rotate(-rotation);
+		transform.translate(-center.x, -center.y);
+		transform.transform(screenXY, selectObjectCoordinates);
+		return selectObjectCoordinates;
 	}
 
 	/**

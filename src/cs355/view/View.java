@@ -24,7 +24,6 @@ public class View implements ViewRefresher, Observer {
         Model.getModel().addObserver(this);
     }
 
-    // TODO: finish
     // Shell builds and passes in Graphics2D object
     // Draw on this object
     // Shell refreshes the drawing area
@@ -35,7 +34,6 @@ public class View implements ViewRefresher, Observer {
         }
     }
 
-    // TODO: finish
     @Override
     public void update(Observable o, Object arg) {
         GUIFunctions.refresh();
