@@ -9,9 +9,6 @@ import java.awt.geom.Point2D;
  */
 public class Ellipse extends Shape {
 
-	// The center of this shape.
-	private Point2D.Double center;
-
 	// The width of this shape.
 	private double width;
 
@@ -28,28 +25,11 @@ public class Ellipse extends Shape {
 	public Ellipse(Color color, Point2D.Double center, double width, double height) {
 
 		// Initialize the superclass.
-		super(color);
+		super(color, center);
 
 		// Set fields.
-		this.center = center;
 		this.width = width;
 		this.height = height;
-	}
-
-	/**
-	 * Getter for this shape's center.
-	 * @return this shape's center as a Java point.
-	 */
-	public Point2D.Double getCenter() {
-		return center;
-	}
-
-	/**
-	 * Setter for this shape's center.
-	 * @param center the new center as a Java point.
-	 */
-	public void setCenter(Point2D.Double center) {
-		this.center = center;
 	}
 
 	/**
@@ -83,4 +63,18 @@ public class Ellipse extends Shape {
 	public void setHeight(double height) {
 		this.height = height;
 	}
+
+	/**
+	 * Add your code to do an intersection test
+	 * here. You shouldn't need the tolerance.
+	 * @param pt = the point to test against.
+	 * @param tolerance = the allowable tolerance.
+	 * @return true if pt is in the shape,
+	 *		   false otherwise.
+	 */
+	@Override
+	public boolean pointInShape(Point2D.Double pt, double tolerance) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
 }

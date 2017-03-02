@@ -9,9 +9,6 @@ import java.awt.geom.Point2D;
  */
 public class Circle extends Shape {
 
-	// The center of this shape.
-	private Point2D.Double center;
-
 	// The radius.
 	private double radius;
 
@@ -24,27 +21,10 @@ public class Circle extends Shape {
 	public Circle(Color color, Point2D.Double center, double radius) {
 
 		// Initialize the superclass.
-		super(color);
+		super(color, center);
 
-		// Set fields.
-		this.center = center;
+		// Set the field.
 		this.radius = radius;
-	}
-
-	/**
-	 * Getter for this shape's center.
-	 * @return this shape's center as a Java point.
-	 */
-	public Point2D.Double getCenter() {
-		return center;
-	}
-
-	/**
-	 * Setter for this shape's center.
-	 * @param center the new center as a Java point.
-	 */
-	public void setCenter(Point2D.Double center) {
-		this.center = center;
 	}
 
 	/**
@@ -62,4 +42,18 @@ public class Circle extends Shape {
 	public void setRadius(double radius) {
 		this.radius = radius;
 	}
+
+	/**
+	 * Add your code to do an intersection test
+	 * here. You shouldn't need the tolerance.
+	 * @param pt = the point to test against.
+	 * @param tolerance = the allowable tolerance.
+	 * @return true if pt is in the shape,
+	 *		   false otherwise.
+	 */
+	@Override
+	public boolean pointInShape(Point2D.Double pt, double tolerance) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
 }

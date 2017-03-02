@@ -278,8 +278,9 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 currentShapeIndex = -1;
                 break;
             default:
-                Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
-                        "Mouse released, tool = " + selectedTool.toString());
+//                Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+//                        "Mouse released, tool = " + selectedTool.toString());
+                break;
         }
     }
 

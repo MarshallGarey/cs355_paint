@@ -1,7 +1,8 @@
 package cs355.model.drawing;
 
-import java.awt.Color;
+import java.awt.*;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 /**
  * Add your triangle code here. You can add fields, but you cannot
@@ -17,14 +18,17 @@ public class Triangle extends Shape {
 	/**
 	 * Basic constructor that sets all fields.
 	 * @param color the color for the new shape.
-	 * @param a the first point.
-	 * @param b the second point.
-	 * @param c the third point.
+	 * @param center the center of the new shape.
+	 * @param a the first point, relative to the center.
+	 * @param b the second point, relative to the center.
+	 * @param c the third point, relative to the center.
 	 */
-	public Triangle(Color color, Point2D.Double a, Point2D.Double b, Point2D.Double c) {
+	public Triangle(Color color, Point2D.Double center, Point2D.Double a,
+					Point2D.Double b, Point2D.Double c)
+	{
 
 		// Initialize the superclass.
-		super(color);
+		super(color, center);
 
 		// Set fields.
 		this.a = a;
@@ -79,4 +83,43 @@ public class Triangle extends Shape {
 	public void setC(Point2D.Double c) {
 		this.c = c;
 	}
+
+	/**
+	 * Calculate the center of the triangle with specified vertices in world coordinates.
+	 * @param p1 Vertex 1.
+	 * @param p2 Vertex 2.
+	 * @param p3 Vertex 3.
+	 * @return A point defining the the center of the triangle.
+	 */
+	public static Point2D.Double findCenter(Point2D.Double p1, Point2D.Double p2, Point2D.Double p3) {
+		double xAverage = (p1.x + p2.x + p3.x) / 3;
+		double yAverage = (p1.y + p2.y + p3.y) / 3;
+		return new Point2D.Double(xAverage, yAverage);
+	}
+
+	/**
+	 * Calculate the vertex coordinates relative to the center coordinate.
+	 * @param center The center of the triangle, in world coordinates.
+	 * @param vertex The given vertex, in world coordinates.
+	 * @return The (x,y) coordinates of the vertex in object coordinates (relative to the center).
+	 */
+	public static Point2D.Double findVertexRelativeToCenter(Point2D.Double center, Point2D.Double vertex) {
+		double xPos = (vertex.x - center.x);
+		double yPos = (vertex.y - center.y);
+		return new Point2D.Double(xPos, yPos);
+	}
+
+	/**
+	 * Add your code to do an intersection test
+	 * here. You shouldn't need the tolerance.
+	 * @param pt = the point to test against.
+	 * @param tolerance = the allowable tolerance.
+	 * @return true if pt is in the shape,
+	 *		   false otherwise.
+	 */
+	@Override
+	public boolean pointInShape(Point2D.Double pt, double tolerance) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
 }

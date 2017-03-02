@@ -9,9 +9,6 @@ import java.awt.geom.Point2D;
  */
 public class Rectangle extends Shape {
 
-	// The upper left corner of this shape.
-	private Point2D.Double upperLeft;
-
 	// The width of this shape.
 	private double width;
 
@@ -21,35 +18,18 @@ public class Rectangle extends Shape {
 	/**
 	 * Basic constructor that sets all fields.
 	 * @param color the color for the new shape.
-	 * @param upperLeft the upper left corner of the new shape.
+	 * @param center the center of the new shape.
 	 * @param width the width of the new shape.
 	 * @param height the height of the new shape.
 	 */
-	public Rectangle(Color color, Point2D.Double upperLeft, double width, double height) {
+	public Rectangle(Color color, Point2D.Double center, double width, double height) {
 
 		// Initialize the superclass.
-		super(color);
+		super(color, center);
 
 		// Set fields.
-		this.upperLeft = upperLeft;
 		this.width = width;
 		this.height = height;
-	}
-
-	/**
-	 * Getter for this Rectangle's upper left corner.
-	 * @return the upper left corner as a Java point.
-	 */
-	public Point2D.Double getUpperLeft() {
-		return upperLeft;
-	}
-
-	/**
-	 * Setter for this Rectangle's upper left corner.
-	 * @param upperLeft the new upper left corner.
-	 */
-	public void setUpperLeft(Point2D.Double upperLeft) {
-		this.upperLeft = upperLeft;
 	}
 
 	/**
@@ -83,4 +63,27 @@ public class Rectangle extends Shape {
 	public void setHeight(double height) {
 		this.height = height;
 	}
+
+	/**
+	 * Calculates center of the rectangle from its upper-left corner.
+	 * @param upperLeft Point defining the upper-left corner of the rectangle.
+	 * @return Point defining the center of the rectangle.
+	 */
+	public Point2D.Double findCenter(Point2D.Double upperLeft) {
+		return new Point2D.Double(upperLeft.x + width/2, upperLeft.y + height/2);
+	}
+
+	/**
+	 * Add your code to do an intersection test
+	 * here. You shouldn't need the tolerance.
+	 * @param pt = the point to test against.
+	 * @param tolerance = the allowable tolerance.
+	 * @return true if pt is in the shape,
+	 *		   false otherwise.
+	 */
+	@Override
+	public boolean pointInShape(Point2D.Double pt, double tolerance) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
 }

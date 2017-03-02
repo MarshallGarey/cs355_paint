@@ -9,7 +9,6 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -144,7 +143,7 @@ public class Model extends CS355Drawing {
                             Point2D.Double drawStartingPoint // Starting position of drawing, needed for some shapes
     ) {
         // Do nothing if the shape is invalid.
-        Shape s = null;
+        Shape s;
         try {
             s = shapes.get(currentShapeIndex);
         } catch (Exception exc) {
@@ -280,7 +279,7 @@ public class Model extends CS355Drawing {
         rectangle.setHeight(height);
 
         // Find which corner is upper left (it can change).
-        rectangle.setUpperLeft(findUpperLeft(e, drawStartingPoint, width, height));
+        rectangle.setCenter(rectangle.findCenter(findUpperLeft(e, drawStartingPoint, width, height)));
     }
 
     private void modifySquare(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
@@ -293,7 +292,7 @@ public class Model extends CS355Drawing {
         square.setSize(size);
 
         // Find which corner is upper left (it can change).
-        square.setUpperLeft(findUpperLeft(e, drawStartingPoint, size, size));
+        square.setCenter(square.findCenter(findUpperLeft(e, drawStartingPoint, size, size)));
     }
 
     private void modifyLine(Shape s, MouseEvent e) {
@@ -337,13 +336,13 @@ public class Model extends CS355Drawing {
     }
 
     private int makeNewSquare(MouseEvent e, Color currentColor) {
-        Point2D.Double upperLeft = new Point2D.Double(e.getX(), e.getY());
-        return addShape(new Square(currentColor, upperLeft, 0));
+        Point2D.Double center = new Point2D.Double(e.getX(), e.getY());
+        return addShape(new Square(currentColor, center, 0));
     }
 
     private int makeNewRectangle(MouseEvent e, Color currentColor) {
-        Point2D.Double upperLeft = new Point2D.Double(e.getX(), e.getY());
-        return addShape(new Rectangle(currentColor, upperLeft, 0, 0));
+        Point2D.Double center = new Point2D.Double(e.getX(), e.getY());
+        return addShape(new Rectangle(currentColor, center, 0, 0));
     }
 
     private int makeNewLine(MouseEvent e, Color currentColor) {
@@ -355,23 +354,27 @@ public class Model extends CS355Drawing {
         return addShape(new Line(currentColor, start, end));
     }
 
+    /**
+     * Adds a triangle to the model.
+     *
+     * @param currentColor Color of the triangle.
+     * @param points The world positions of the 3 vertices of the triangle.
+     * @return The index of the new triangle in the models list of shapes.
+     */
     public int makeNewTriangle(Color currentColor, ArrayList<Point2D.Double> points) {
-        int index = addShape(new Triangle(currentColor, points.get(0), points.get(1), points.get(2)));
+        // The world positions of the 3 vertices are passed. A triangle stores its center in world position,
+        // with the vertices relative to the center. We need to calculate the center and the relative positions of the
+        // vertices. The center is the average of the world coordinates of the vertices.
+        Point2D.Double center = Triangle.findCenter(points.get(0), points.get(1), points.get(2));
+        int index = addShape(new Triangle(
+                currentColor,
+                center,
+                Triangle.findVertexRelativeToCenter(center, points.get(0)),
+                Triangle.findVertexRelativeToCenter(center, points.get(1)),
+                Triangle.findVertexRelativeToCenter(center, points.get(2)))
+        );
         notifyObservers();
         return index;
-    }
-
-    /**
-     * @param p1 Point 1.
-     * @param p2 Point 2.
-     * @return The distance between the two points.
-     */
-    private double findDistance(Point2D.Double p1, Point2D.Double p2) {
-        // Distance formula.
-        return Math.sqrt( // Square root of
-                ((p1.getX() - p2.getX()) * (p1.getX() - p2.getX())) + // Square of the difference in X plus
-                        ((p1.getY() - p2.getY()) * (p1.getY() - p2.getY())) // Square of the difference in Y
-        );
     }
 
 }
