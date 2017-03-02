@@ -297,7 +297,7 @@ public class Model extends CS355Drawing {
 
     private void modifyLine(Shape s, MouseEvent e) {
         Line l = (Line)s;
-        Point2D.Double end = new Point2D.Double(e.getX(), e.getY());
+        Point2D.Double end = new Point2D.Double(e.getX() - l.getCenter().x, e.getY() - l.getCenter().y);
         l.setEnd(end);
     }
 

@@ -67,7 +67,7 @@ public class View implements ViewRefresher, Observer {
         // Now draw the appropriate shape:
         if (s instanceof Line) {
             Line l = (Line) s;
-            g2d.drawLine((int)l.getCenter().x, (int)l.getCenter().y, (int)l.getEnd().x, (int)l.getEnd().y);
+            g2d.drawLine(0, 0, (int)l.getEnd().x, (int)l.getEnd().y);
         }
         else if (s instanceof Square) {
             Square square = (Square) s;
