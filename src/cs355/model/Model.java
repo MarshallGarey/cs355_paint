@@ -385,6 +385,11 @@ public class Model extends CS355Drawing {
      * @return The index of the selected shape, or -1 if no shape was selected.
      */
     public int selectShape(int screenX, int screenY) {
+
+        // I am arbitrarily choosing the tolerance here - how close to the line a click
+        // is to be considered a hit.
+        double tolerance = 20.0;
+
         // This selected point is currently in screen coordinates. It will be translated to object coordinates
         // when tested if it intersects with an object.
         Point2D.Double selectedPoint = new Point2D.Double((double) screenX, (double) screenY);
@@ -392,7 +397,7 @@ public class Model extends CS355Drawing {
         // Test every shape, in forward order (most front one first, most rear one last).
         for (int i = shapes.size() - 1; i >= 0; i--) {
             Shape s = shapes.get(i);
-            if (s.pointInShape(selectedPoint, 4)) {
+            if (s.pointInShape(selectedPoint, tolerance)) {
                 return i;
             }
         }

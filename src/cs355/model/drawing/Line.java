@@ -1,5 +1,7 @@
 package cs355.model.drawing;
 
+import cs355.GUIFunctions;
+
 import java.awt.Color;
 import java.awt.geom.Point2D;
 
@@ -53,7 +55,62 @@ public class Line extends Shape {
 	 */
 	@Override
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		/*
+  float minimum_distance(vec2 v, vec2 w, vec2 p) {
+  // Return minimum distance between line segment vw and point p
+  const float l2 = length_squared(v, w);  // i.e. |w-v|^2 -  avoid a sqrt
+  if (l2 == 0.0) return distance(p, v);   // v == w case
+  // Consider the line extending the segment, parameterized as v + t (w - v).
+  // We find projection of point p onto the line.
+  // It falls where t = [(p-v) . (w-v)] / |w-v|^2
+  // We clamp t from [0,1] to handle points outside the segment vw.
+  const float t = max(0, min(1, dot(p - v, w - v) / l2));
+  const vec2 projection = v + t * (w - v);  // Projection falls on the segment
+  return distance(p, projection);
+}
+		 */
+
+		// Line normal = (-dy,dx)
+		// Unit normal: divide by vector length
+		double length = Point2D.Double.distance(center.x, center.y, end.x, end.y);
+		double dy = (end.y - center.y) / length;
+		double dx = (end.x - center.x) / length;
+		Point2D.Double normal = new Point2D.Double(-dy, dx);
+
+		// How close pt is to the line:
+		// abs( pt . n - start . n )
+		double distanceToLine = Math.abs(dotProduct(pt, normal) - dotProduct(center, normal));
+
+		// The line parameterized as start + t(end-start)
+		// Project pt onto this line, limiting t to the range [0,1] to ensure we're inside
+		// the line segment.
+		//   t = [(pt-start) . (pt-end)] / length^2  (use length^2 to avoid a square root)
+		// max(0, min(1, dot(pt-start, pt-end)/lengthSquared))
+		//
+		//   projectionPoint = start + t(end-start)
+		// distance(pt, projectionPoint) is the distance from the line segment to the point.
+		double t =
+				Math.max(0.0, Math.min(1.0,
+						dotProduct(new Point2D.Double(pt.x - center.x, pt.y - center.y),
+								new Point2D.Double(pt.x - end.x, pt.y - end.y)
+						) / length));
+		Point2D.Double projectionPoint = new Point2D.Double(
+				center.x + t*(dx),
+				center.y + t*(dy)
+		);
+
+		double distance = Point2D.distance(pt.x, pt.y, projectionPoint.x, projectionPoint.y);
+		GUIFunctions.printf("To Line: %f, Dist: %f", distanceToLine, distance);
+
+		// If this distance is within the line segment endpoints,
+		// count it as falling within the line.
+		return distance < length && distanceToLine < tolerance;
+
+	}
+
+	private double dotProduct(Point2D.Double p1, Point2D.Double p2) {
+		return p1.x * p2.x + p1.y * p2.y;
 	}
 
 }

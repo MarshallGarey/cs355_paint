@@ -248,7 +248,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mousePressed(MouseEvent e) {
-        GUIFunctions.printf("Mouse pressed");
+//        GUIFunctions.printf("Mouse pressed");
         // Do nothing if the mouse press wasn't in the canvas.
         if (!mouseInCanvas(e)) {
             Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, "mousePressed not in canvas");
@@ -286,7 +286,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        GUIFunctions.printf("Mouse released");
+//        GUIFunctions.printf("Mouse released");
         // Do something depending on the selected tool.
         switch (selectedTool) {
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
@@ -318,7 +318,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        GUIFunctions.printf("Mouse moved");
+//        GUIFunctions.printf("Mouse moved");
         switch(selectedTool) {
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE: case TRIANGLE:
                 if (currentShapeIndex >= 0)
