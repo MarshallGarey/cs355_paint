@@ -109,6 +109,27 @@ public class Line extends Shape {
 
 	}
 
+	public void move(Point2D.Double startingPoint) {
+		// Figure out which point to move
+		double distanceStart = Point2D.distance(center.x, center.y, startingPoint.x, startingPoint.y);
+		double distanceEnd = Point2D.distance(end.x, end.y, startingPoint.x, startingPoint.y);
+
+		// Starting point
+		if (distanceStart < distanceEnd) {
+			double dx = startingPoint.x - center.x;
+			double dy = startingPoint.y - center.y;
+			center.x += dx;
+			center.y += dy;
+		}
+		// Ending point
+		else {
+			double dx = startingPoint.x - end.x;
+			double dy = startingPoint.y - end.y;
+			end.x += dx;
+			end.y += dy;
+		}
+	}
+
 	private double dotProduct(Point2D.Double p1, Point2D.Double p2) {
 		return p1.x * p2.x + p1.y * p2.y;
 	}

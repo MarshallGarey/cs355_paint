@@ -415,7 +415,8 @@ public class Model extends CS355Drawing {
                 Triangle.findVertexRelativeToCenter(center, points.get(1)),
                 Triangle.findVertexRelativeToCenter(center, points.get(2)))
         );
-        notifyObservers();
+//        notifyObservers();
+        updateObservers();
         return index;
     }
 
@@ -443,5 +444,21 @@ public class Model extends CS355Drawing {
             }
         }
         return -1;
+    }
+
+    public void moveShape(int currentShapeIndex, Point2D.Double startingPoint, int dx, int dy) {
+        Shape s = shapes.get(currentShapeIndex);
+
+        // Moving lines is different than other shapes.
+        if (s instanceof Line) {
+            Line l = (Line) s;
+            l.move(startingPoint);
+        }
+        else {
+            s.move(dx, dy);
+        }
+
+        // Redraw
+        updateObservers();
     }
 }

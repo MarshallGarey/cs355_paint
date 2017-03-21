@@ -1,10 +1,8 @@
 package cs355.controller;
 
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import cs355.GUIFunctions;
 import cs355.model.Model;
 import cs355.model.drawing.*;
-import cs355.solution.CS355;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -28,12 +26,13 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // Currently selected color.
     private Color currentColor;
 
-    // Index of currently selected shape. When negative, that means no shape is selected.
+    // Index of currently selected shape.
+    // A negative value indicates no shape is selected.
     private final int NO_SHAPE_SELECTED = -1;
     private int currentShapeIndex = NO_SHAPE_SELECTED;
 
-    // Starting point of drawing.
-    private Point2D.Double drawStartingPoint;
+    // Initial point of the mouse press.
+    private Point2D.Double startingPoint;
 
     // Currently selected tool.
     public enum Tool {
@@ -60,7 +59,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         GUIFunctions.changeSelectedColor(currentColor);
 
         // Change the color of the selected shape and redraw.
-        if (currentShapeIndex >= 0) {
+        if (shapeIsSelected()) {
             Model.getModel().getShape(currentShapeIndex).setColor(currentColor);
             Model.getModel().updateObservers();
         }
@@ -167,7 +166,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void doDeleteShape() {
-        if (currentShapeIndex >= 0) {
+        if (shapeIsSelected()) {
             Model.getModel().deleteShape(currentShapeIndex);
             currentShapeIndex = NO_SHAPE_SELECTED;
         }
@@ -210,7 +209,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void doMoveForward() {
-        if (currentShapeIndex >= 0) {
+        if (shapeIsSelected()) {
             if (Model.getModel().hasShapeInFront(currentShapeIndex)) {
                 Model.getModel().moveForward(currentShapeIndex);
                 currentShapeIndex++;
@@ -220,7 +219,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void doMoveBackward() {
-        if (currentShapeIndex >= 0) {
+        if (shapeIsSelected()) {
             if (Model.getModel().hasShapeBehind(currentShapeIndex)) {
                 Model.getModel().moveBackward(currentShapeIndex);
                 currentShapeIndex--;
@@ -230,7 +229,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void doSendToFront() {
-        if (currentShapeIndex >= 0) {
+        if (shapeIsSelected()) {
             Model.getModel().moveToFront(currentShapeIndex);
             currentShapeIndex = Model.getModel().getShapes().size()-1;
         }
@@ -238,7 +237,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void doSendtoBack() {
-        if (currentShapeIndex >= 0) {
+        if (shapeIsSelected()) {
             Model.getModel().movetoBack(currentShapeIndex);
             currentShapeIndex = 0;
         }
@@ -281,18 +280,21 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
             return;
         }
 
+        // Retain the coordinates of the initial mouse press.
+        // They're used when modifying/moving shapes.
+        startingPoint = new Point2D.Double(e.getX(), e.getY());
+
         // Do something depending on the selected tool.
         switch (selectedTool) {
             // For every shape, just create a new shape.
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
                 currentShapeIndex = Model.getModel().makeNewShape(selectedTool, e, currentColor);
-                drawStartingPoint = new Point2D.Double(e.getX(), e.getY());
                 break;
             case SELECT:
                 // Model.selectShape will return the index of the selected shape, or a negative number if the selected
                 // point was not inside any shape.
                 currentShapeIndex = Model.getModel().selectShape(e.getX(), e.getY());
-                if (currentShapeIndex >= 0) {
+                if (shapeIsSelected()) {
                     // A shape was selected.
                     Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
                             "Selected shape is " +
@@ -304,26 +306,25 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 }
                 break;
             default:
-//                Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
-//                        "Mouse pressed, tool = " + selectedTool.toString());
                 break;
         }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-//        GUIFunctions.printf("Mouse released");
         // Do something depending on the selected tool.
         switch (selectedTool) {
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
-                Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, drawStartingPoint);
+                Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, startingPoint);
                 currentShapeIndex = NO_SHAPE_SELECTED;
                 break;
             default:
-//                Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
-//                        "Mouse released, tool = " + selectedTool.toString());
                 break;
         }
+
+        // Now that the mouse has been released,
+        // get rid of the starting coordinates of the mouse press.
+        startingPoint = null;
     }
 
     @Override
@@ -338,24 +339,45 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mouseDragged(MouseEvent e) {
-//        GUIFunctions.printf("Mouse dragged");
-        mouseMoved(e);
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-//        GUIFunctions.printf("Mouse moved");
+//        mouseMoved(e);
+        // Do nothing if no shape is selected.
+        if (!shapeIsSelected()) {
+            return;
+        }
         switch(selectedTool) {
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE: case TRIANGLE:
-                if (currentShapeIndex >= 0)
-                    Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, drawStartingPoint);
+                Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, startingPoint);
+                break;
+            case SELECT:
+                // Move the selected shape.
+                Model.getModel().moveShape(currentShapeIndex,
+                        startingPoint,
+                        e.getX() - (int)startingPoint.x,
+                        e.getY() - (int)startingPoint.y);
+
+                // Update the starting mouse coordinates so they next time the mouse
+                // is dragged, the change in x and y will be relative to this mouse
+                // move and not the initial press.
+                startingPoint.x = e.getX();
+                startingPoint.y = e.getY();
                 break;
             default:
                 break;
         }
     }
 
+    @Override
+    public void mouseMoved(MouseEvent e) {
+
+    }
+
+    // ***********************************************************************
     // Helper methods
+    // ***********************************************************************
+
+    private boolean shapeIsSelected() {
+        return currentShapeIndex >= 0;
+    }
 
     private boolean mouseInCanvas(MouseEvent e) {
         return (e.getX() > 0) && (e.getY() > 0);

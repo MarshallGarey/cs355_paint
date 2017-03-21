@@ -101,4 +101,14 @@ public abstract class Shape {
 	 * @return true if pt is in the shape, false otherwise.
 	 */
 	public abstract boolean pointInShape(Point2D.Double pt, double tolerance);
+
+	/**
+	 * Move the shape.
+	 * @param dx Number of pixels to move in the x direction.
+	 * @param dy Number of pixels to move in the y direction.
+	 */
+	public void move(double dx, double dy) {
+		center.x += dx;
+		center.y += dy;
+	}
 }

@@ -4,8 +4,6 @@ import cs355.solution.CS355;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Add your circle code here. You can add fields, but you cannot
