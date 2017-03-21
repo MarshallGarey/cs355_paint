@@ -70,6 +70,7 @@ public class Model extends CS355Drawing {
     @Override
     public void deleteShape(int index) {
         shapes.remove(index);
+        updateObservers();
     }
 
     // Note: the "front" of the canvas is actually the end of the list (high index).
@@ -81,6 +82,8 @@ public class Model extends CS355Drawing {
         Shape s = shapes.get(index);
         shapes.remove(index);
         shapes.add(s);
+
+        // Redraw.
         updateObservers();
     }
 
@@ -93,19 +96,53 @@ public class Model extends CS355Drawing {
         Shape s = shapes.get(index);
         shapes.remove(index);
         shapes.add(0, s);
+
+        // Redraw.
         updateObservers();
     }
 
-    // TODO: Swap indices of the shape with the next highest index
-    @Override
-    public void moveForward(int index) {
-
+    public boolean hasShapeInFront(int currentShapeIndex) {
+        return currentShapeIndex < (shapes.size() - 1);
     }
 
-    // TODO: Swap indices of the shape with the next lowest index
+    // Swap indices of the shape with the next highest index
+    @Override
+    public void moveForward(int index) {
+        // Check if a shape is in front of the selected one.
+        if (!hasShapeInFront(index)) {
+            return;
+        }
+
+        // Yes, do the swap.
+        Shape toMoveForward = shapes.get(index);
+        Shape toMoveBackward = shapes.get(index+1);
+        shapes.set(index, toMoveBackward);
+        shapes.set(index+1, toMoveForward);
+
+        // Redraw.
+        updateObservers();
+    }
+
+    public boolean hasShapeBehind(int currentShapeIndex) {
+        return currentShapeIndex > 0;
+    }
+
+    // Swap indices of the shape with the next lowest index
     @Override
     public void moveBackward(int index) {
+        // Check if a shape is in behind of the selected one.
+        if (!hasShapeBehind(index)) {
+            return;
+        }
 
+        // Yes, do the swap.
+        Shape toMoveForward = shapes.get(index-1);
+        Shape toMoveBackward = shapes.get(index);
+        shapes.set(index-1, toMoveBackward);
+        shapes.set(index, toMoveForward);
+
+        // Redraw.
+        updateObservers();
     }
 
     @Override
@@ -113,10 +150,14 @@ public class Model extends CS355Drawing {
         return shapes;
     }
 
-    // TODO: implement
+    // TODO: test
     @Override
     public List<Shape> getShapesReversed() {
-        return null;
+        ArrayList<Shape> shapesReversed = new ArrayList<>(shapes.size());
+        for (int i = shapes.size() - 1; i >= 0; i--) {
+            shapesReversed.add(shapes.get(i));
+        }
+        return shapesReversed;
     }
 
     @Override
@@ -126,7 +167,7 @@ public class Model extends CS355Drawing {
         Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, "set of shapes: " + shapes.toString());
     }
 
-    private void updateObservers() {
+    public void updateObservers() {
         this.setChanged();
         this.notifyObservers();
     }

@@ -29,7 +29,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     private Color currentColor;
 
     // Index of currently selected shape. When negative, that means no shape is selected.
-    private int currentShapeIndex = -1;
+    private final int NO_SHAPE_SELECTED = -1;
+    private int currentShapeIndex = NO_SHAPE_SELECTED;
 
     // Starting point of drawing.
     private Point2D.Double drawStartingPoint;
@@ -57,6 +58,12 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         // Update current color indicator.
         currentColor = new Color(c.getRGB());
         GUIFunctions.changeSelectedColor(currentColor);
+
+        // Change the color of the selected shape and redraw.
+        if (currentShapeIndex >= 0) {
+            Model.getModel().getShape(currentShapeIndex).setColor(currentColor);
+            Model.getModel().updateObservers();
+        }
     }
 
     @Override
@@ -160,7 +167,10 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void doDeleteShape() {
-
+        if (currentShapeIndex >= 0) {
+            Model.getModel().deleteShape(currentShapeIndex);
+            currentShapeIndex = NO_SHAPE_SELECTED;
+        }
     }
 
     @Override
@@ -200,22 +210,38 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void doMoveForward() {
-
+        if (currentShapeIndex >= 0) {
+            if (Model.getModel().hasShapeInFront(currentShapeIndex)) {
+                Model.getModel().moveForward(currentShapeIndex);
+                currentShapeIndex++;
+            }
+        }
     }
 
     @Override
     public void doMoveBackward() {
-
+        if (currentShapeIndex >= 0) {
+            if (Model.getModel().hasShapeBehind(currentShapeIndex)) {
+                Model.getModel().moveBackward(currentShapeIndex);
+                currentShapeIndex--;
+            }
+        }
     }
 
     @Override
     public void doSendToFront() {
-
+        if (currentShapeIndex >= 0) {
+            Model.getModel().moveToFront(currentShapeIndex);
+            currentShapeIndex = Model.getModel().getShapes().size()-1;
+        }
     }
 
     @Override
     public void doSendtoBack() {
-
+        if (currentShapeIndex >= 0) {
+            Model.getModel().movetoBack(currentShapeIndex);
+            currentShapeIndex = 0;
+        }
     }
 
     @Override
@@ -291,7 +317,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         switch (selectedTool) {
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
                 Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, drawStartingPoint);
-                currentShapeIndex = -1;
+                currentShapeIndex = NO_SHAPE_SELECTED;
                 break;
             default:
 //                Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
@@ -335,18 +361,4 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         return (e.getX() > 0) && (e.getY() > 0);
     }
 
-    // Getters and Setters
-
-    public Color getCurrentColor() {
-        return currentColor;
-    }
-
-    public void setCurrentColor(Color currentColor) {
-        // Call this function, which also notifies the GUI to update.
-        colorButtonHit(currentColor);
-    }
-
-    public Tool getSelectedTool() {
-        return selectedTool;
-    }
 }
