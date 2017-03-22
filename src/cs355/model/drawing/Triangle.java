@@ -2,7 +2,6 @@ package cs355.model.drawing;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 
 /**
  * Add your triangle code here. You can add fields, but you cannot
@@ -119,8 +118,69 @@ public class Triangle extends Shape {
 	 */
 	@Override
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
-		return false;
-//		throw new UnsupportedOperationException("Not supported yet.");
+		Point2D.Double selectObjectPoint = transformScreenToObjectCoordinates(pt);
+
+		/* Do the following tests to find out which side of each line segment
+		the point is on.
+		(q − p1) · (p2 − p1)⊥ > 0
+		(q − p2) · (p3 − p2)⊥ > 0
+		(q − p3) · (p1 − p3)⊥ > 0
+		 */
+		boolean sideA = pointOnTriangleSide(selectObjectPoint, b, a);
+		boolean sideB =	pointOnTriangleSide(selectObjectPoint, c, b);
+		boolean sideC = pointOnTriangleSide(selectObjectPoint, a, c);
+
+		/*
+		Figure out if the line segments are top-bottom or bottom-top.
+		If they're top-bottom, apply the positive test (sideA,B,C are all true).
+		Otherwise, apply the negative test (all false).
+
+		Do this by testing dx from b->a->c;
+		  If 2 of the 3 dx are 0 or positive, we went counter-clockwise and
+		  need to use the left-side (negative) test.
+		  If 2 of the 3 dx are 0 or negative, we went clockwise and
+		  need to use the right-side (positive) test.
+		*/
+		boolean dx1positive = (b.x - a.x) >= 0;
+		boolean dx2positive = (c.x - b.x) >= 0;
+		boolean dx3positive = (a.x - c.x) >= 0;
+
+		// If at least 2 of 3 of dx1positive/dx2positive/dx3positive are true,
+		// use the ccw test. Otherwise, use the cw test.
+		if (atLeastTwo(dx1positive, dx2positive, dx3positive)) {
+			return sideA && sideB && sideC;
+		}
+		else {
+			return !sideA && !sideB && !sideC;
+		}
+	}
+
+	/**
+	 * @param a Condition
+	 * @param b Condition
+	 * @param c Condition
+	 * @return True if at least 2 of a,b,c are true. False otherwise.
+	 */
+	private boolean atLeastTwo(boolean a, boolean b, boolean c) {
+		return a ? (b || c) : (b && c);
+	}
+
+	/**
+	 * Apply the following test to find out which side of line segment the point is on.
+	 * (pt - triA) . (triB - triA)⊥ > 0
+	 * Use (dy,-dx) for the normal, where dy = triB.y-triA.y and dx = triB.x-triA.x
+	 *
+	 * @param pt The selected point.
+	 * @param triA One triangle vertex.
+	 * @param triB Another triangle vertex.
+	 * @return True if the point is on the "right" side of the line segment,
+	 * if triA is the top vertex and triA is the bottom.
+	 */
+	private boolean pointOnTriangleSide(Point2D.Double pt, Point2D.Double triA, Point2D.Double triB) {
+		double xDot = (pt.x - triA.x) * (triB.y - triA.y);
+		double yDot = (pt.y - triA.y) * -(triB.x - triA.x);
+
+		return (xDot + yDot) > 0;
 	}
 
 }
