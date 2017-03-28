@@ -13,6 +13,8 @@ import java.awt.*;
  */
 public class CS355 {
 
+	private static PaintController controller = null;
+
 	/**
 	 * This is where it starts.
 	 * @param args = the command line arguments
@@ -20,7 +22,7 @@ public class CS355 {
 	public static void main(String[] args) {
 
 		// Fill in the parameters below with your controller and view.
-		PaintController controller = new PaintController();
+		controller = new PaintController();
 		View view = new View();
 		GUIFunctions.createCS355Frame(controller, view);
 
@@ -28,5 +30,9 @@ public class CS355 {
 
 		// Initialize color
         controller.colorButtonHit(Color.BLUE);
+	}
+
+	public static PaintController getController() {
+		return controller;
 	}
 }

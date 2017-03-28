@@ -80,35 +80,43 @@ public abstract class Shape {
 	}
 
 	/**
-	 * Transform the selection point pt to object coordinates (inverse translate, inverse rotate).
-	 * Remember that the transformation operations are performed in reverse order that I call them.
-	 * @param screenXY The selection screen xy coordinates.
-	 * @return The object xy coordinates.
+	 * Find the complement of the shape's color. Used for highlighting purposes.
+	 * @return The complementary color of the shape's color.
 	 */
-	public Point2D.Double transformScreenToObjectCoordinates(Point2D.Double screenXY) {
-		Point2D.Double selectObjectCoordinates = new Point2D.Double();
-		AffineTransform transform = new AffineTransform();
-		transform.rotate(-rotation);
-		transform.translate(-center.x, -center.y);
-		transform.transform(screenXY, selectObjectCoordinates);
-		return selectObjectCoordinates;
+	public Color getComplementaryColor() {
+		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue());
 	}
 
-	/**
-	 * Used to test for whether the user clicked inside a shape or not.
-	 * @param pt = the point to test whether it's in the shape or not.
-	 * @param tolerance = the tolerance for testing. Mostly used for lines.
-	 * @return true if pt is in the shape, false otherwise.
-	 */
-	public abstract boolean pointInShape(Point2D.Double pt, double tolerance);
+    /**
+     * Transform the selection point pt to object coordinates (inverse translate, inverse rotate).
+     * Remember that the transformation operations are performed in reverse order that I call them.
+     * @param screenXY The selection screen xy coordinates.
+     * @return The object xy coordinates.
+     */
+    public Point2D.Double transformScreenToObjectCoordinates(Point2D.Double screenXY) {
+        Point2D.Double selectObjectCoordinates = new Point2D.Double();
+        AffineTransform transform = new AffineTransform();
+        transform.rotate(-rotation);
+        transform.translate(-center.x, -center.y);
+        transform.transform(screenXY, selectObjectCoordinates);
+        return selectObjectCoordinates;
+    }
 
-	/**
-	 * Move the shape.
-	 * @param dx Number of pixels to move in the x direction.
-	 * @param dy Number of pixels to move in the y direction.
-	 */
-	public void move(double dx, double dy) {
-		center.x += dx;
-		center.y += dy;
-	}
+    /**
+     * Used to test for whether the user clicked inside a shape or not.
+     * @param pt = the point to test whether it's in the shape or not.
+     * @param tolerance = the tolerance for testing. Mostly used for lines.
+     * @return true if pt is in the shape, false otherwise.
+     */
+    public abstract boolean pointInShape(Point2D.Double pt, double tolerance);
+
+    /**
+     * Move the shape.
+     * @param dx Number of pixels to move in the x direction.
+     * @param dy Number of pixels to move in the y direction.
+     */
+    public void move(double dx, double dy) {
+        center.x += dx;
+        center.y += dy;
+    }
 }

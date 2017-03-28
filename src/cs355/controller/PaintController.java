@@ -3,6 +3,7 @@ package cs355.controller;
 import cs355.GUIFunctions;
 import cs355.model.Model;
 import cs355.model.drawing.*;
+import cs355.model.drawing.Shape;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -167,8 +168,9 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     @Override
     public void doDeleteShape() {
         if (shapeIsSelected()) {
-            Model.getModel().deleteShape(currentShapeIndex);
+            int index = currentShapeIndex;
             currentShapeIndex = NO_SHAPE_SELECTED;
+            Model.getModel().deleteShape(index);
         }
     }
 
@@ -294,6 +296,12 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 // Model.selectShape will return the index of the selected shape, or a negative number if the selected
                 // point was not inside any shape.
                 currentShapeIndex = Model.getModel().selectShape(e.getX(), e.getY());
+
+                // Redraw the screen to update the highlights
+                // TODO: only do this if a currentShapeIndex changed
+                // TODO (if needed): Optimization: only redraw what needs to be redrawn instead of the whole canvas
+                Model.getModel().updateObservers();
+
                 if (shapeIsSelected()) {
                     // A shape was selected.
                     Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
@@ -315,8 +323,9 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         // Do something depending on the selected tool.
         switch (selectedTool) {
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
-                Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, startingPoint);
+                int shape = currentShapeIndex;
                 currentShapeIndex = NO_SHAPE_SELECTED;
+                Model.getModel().modifyShape(shape, selectedTool, e, startingPoint);
                 break;
             default:
                 break;
@@ -339,7 +348,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mouseDragged(MouseEvent e) {
-//        mouseMoved(e);
         // Do nothing if no shape is selected.
         if (!shapeIsSelected()) {
             return;
@@ -375,10 +383,26 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // Helper methods
     // ***********************************************************************
 
+    /**
+     * @return True if any shape is selected. False otherwise.
+     */
     private boolean shapeIsSelected() {
-        return currentShapeIndex >= 0;
+        // TODO: Make it so that a shape isn't selected while it's being drawn.
+        return (currentShapeIndex >= 0);
     }
 
+    /**
+     * @param s The shape to test.
+     * @return True if shape s is selected, false otherwise.
+     */
+    public boolean isSelected(Shape s) {
+        return (currentShapeIndex >= 0) && (Model.getModel().getShape(currentShapeIndex).equals(s));
+    }
+
+    /**
+     * @param e Mouse event, which contains the (x,y) coordinates of the mouse.
+     * @return True if the mouse is inside the canvas, false otherwise.
+     */
     private boolean mouseInCanvas(MouseEvent e) {
         return (e.getX() > 0) && (e.getY() > 0);
     }
