@@ -4,7 +4,6 @@ import cs355.controller.PaintController;
 import cs355.model.drawing.*;
 import cs355.model.drawing.Rectangle;
 import cs355.model.drawing.Shape;
-import org.w3c.dom.css.Rect;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -13,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.CRC32;
 
 /**
  * Created by Marshall on 1/24/2017.
@@ -70,7 +68,7 @@ public class Model extends CS355Drawing {
     @Override
     public void deleteShape(int index) {
         shapes.remove(index);
-        updateObservers();
+        redraw();
     }
 
     // Note: the "front" of the canvas is actually the end of the list (high index).
@@ -84,7 +82,7 @@ public class Model extends CS355Drawing {
         shapes.add(s);
 
         // Redraw.
-        updateObservers();
+        redraw();
     }
 
     // Note: the "back" of the canvas is the beginning of the list (index zero).
@@ -98,7 +96,7 @@ public class Model extends CS355Drawing {
         shapes.add(0, s);
 
         // Redraw.
-        updateObservers();
+        redraw();
     }
 
     public boolean hasShapeInFront(int currentShapeIndex) {
@@ -120,7 +118,7 @@ public class Model extends CS355Drawing {
         shapes.set(index+1, toMoveForward);
 
         // Redraw.
-        updateObservers();
+        redraw();
     }
 
     public boolean hasShapeBehind(int currentShapeIndex) {
@@ -142,7 +140,7 @@ public class Model extends CS355Drawing {
         shapes.set(index, toMoveForward);
 
         // Redraw.
-        updateObservers();
+        redraw();
     }
 
     @Override
@@ -163,11 +161,11 @@ public class Model extends CS355Drawing {
     @Override
     public void setShapes(List<Shape> shapes) {
         this.shapes = new ArrayList<>(shapes);
-        updateObservers();
+        redraw();
         Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, "set of shapes: " + shapes.toString());
     }
 
-    public void updateObservers() {
+    public void redraw() {
         this.setChanged();
         this.notifyObservers();
     }
@@ -236,11 +234,12 @@ public class Model extends CS355Drawing {
                 break;
         }
 
-        // Notify view of the change.
-        updateObservers();
+        // Notify the view of the change.
+        redraw();
     }
 
-    private Point2D.Double findUpperLeft(MouseEvent e, Point2D.Double drawStartingPoint, double width, double height) {
+    private Point2D.Double findUpperLeft(MouseEvent e, Point2D.Double drawStartingPoint,
+                                         double width, double height) {
         Point2D.Double upperLeft = new Point2D.Double();
 
         // Find which corner of the rectangle or square is the upper left corner.
@@ -415,8 +414,7 @@ public class Model extends CS355Drawing {
                 Triangle.findVertexRelativeToCenter(center, points.get(1)),
                 Triangle.findVertexRelativeToCenter(center, points.get(2)))
         );
-//        notifyObservers();
-        updateObservers();
+        redraw();
         return index;
     }
 
@@ -459,6 +457,28 @@ public class Model extends CS355Drawing {
         }
 
         // Redraw
-        updateObservers();
+        redraw();
+    }
+
+    public double rotateShape(int currentShapeIndex, double startingAngle, int mouseX, int mouseY) {
+
+        // Calculate the angle between the mouse and the x-axis of the shape.
+        double newAngle = findAngleBetweenMouseAndShape(mouseX, mouseY, currentShapeIndex);
+
+        // Rotate the selected shape by the difference between this angle and the previous one.
+        Shape s = Model.getModel().getShape(currentShapeIndex);
+        double newRotation = s.getRotation() + newAngle - startingAngle;
+        s.setRotation(newRotation);
+
+        // Update the view and return
+        redraw();
+        return newAngle;
+    }
+
+    public double findAngleBetweenMouseAndShape(int mouseX, int mouseY, int shapeIndex) {
+        Shape s = getShape(shapeIndex);
+        Point2D.Double point = s.transformScreenToObjectCoordinates(
+                new Point2D.Double(mouseX, mouseY));
+        return Math.atan2(point.y, point.x);
     }
 }

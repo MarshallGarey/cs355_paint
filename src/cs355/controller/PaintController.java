@@ -34,6 +34,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     // Initial point of the mouse press.
     private Point2D.Double startingPoint;
+    private double startingAngle;
+    private boolean rotateCurrentShape = false;
 
     // Currently selected tool.
     public enum Tool {
@@ -62,7 +64,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         // Change the color of the selected shape and redraw.
         if (shapeIsSelected()) {
             Model.getModel().getShape(currentShapeIndex).setColor(currentColor);
-            Model.getModel().updateObservers();
+            Model.getModel().redraw();
         }
     }
 
@@ -293,19 +295,44 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 currentShapeIndex = Model.getModel().makeNewShape(selectedTool, e, currentColor);
                 break;
             case SELECT:
-                // Model.selectShape will return the index of the selected shape, or a negative number if the selected
-                // point was not inside any shape.
+                // If a shape is currently selected, test if a handle is being selected.
+                // This takes priority over shape selection.
+                // If so, set the rotation flag to true so the shape will rotate
+                // instead of move when dragged.
+                if (shapeIsSelected() &&
+                        (rotateCurrentShape = Model.getModel().getShape(currentShapeIndex).pointInHandle(
+                            new Point2D.Double(e.getX(), e.getY())
+                    ))) {
+
+                    // Debugging
+                    Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+                            "Clicked in rotation handle, rotateCurrentShape=", rotateCurrentShape);
+
+                    // Store starting angle in object coordinates. Used for rotating shapes.
+                    startingAngle = Model.getModel().findAngleBetweenMouseAndShape(
+                            e.getX(), e.getY(), currentShapeIndex);
+
+                    // Return without doing the selection test for shapes.
+                    return;
+                }
+
+                // Test for shape selection.
+                // Model.selectShape will return the index of the selected shape,
+                // or a negative number if the selected point was not inside any shape.
                 currentShapeIndex = Model.getModel().selectShape(e.getX(), e.getY());
 
                 // Redraw the screen to update the highlights
                 // TODO: only do this if a currentShapeIndex changed
                 // TODO (if needed): Optimization: only redraw what needs to be redrawn instead of the whole canvas
-                Model.getModel().updateObservers();
+                Model.getModel().redraw();
 
                 if (shapeIsSelected()) {
-                    // A shape was selected. Change the current color indicator to the selected shape's color.
+                    // A shape was selected.
+                    // Change the current color indicator to the selected shape's color.
                     currentColor = Model.getModel().getShape(currentShapeIndex).getColor();
                     GUIFunctions.changeSelectedColor(currentColor);
+
+                    // Debugging:
                     Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
                             "Selected shape is " +
                             Model.getModel().getShapes().get(currentShapeIndex).toString());
@@ -359,17 +386,13 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, startingPoint);
                 break;
             case SELECT:
-                // Move the selected shape.
-                Model.getModel().moveShape(currentShapeIndex,
-                        startingPoint,
-                        e.getX() - (int)startingPoint.x,
-                        e.getY() - (int)startingPoint.y);
-
-                // Update the starting mouse coordinates so they next time the mouse
-                // is dragged, the change in x and y will be relative to this mouse
-                // move and not the initial press.
-                startingPoint.x = e.getX();
-                startingPoint.y = e.getY();
+                // Find out whether to rotate or move the shape.
+                if (rotateCurrentShape) {
+                    rotateShape(e.getX(), e.getY());
+                }
+                else {
+                    moveShape(e.getX(), e.getY());
+                }
                 break;
             default:
                 break;
@@ -384,6 +407,32 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // ***********************************************************************
     // Helper methods
     // ***********************************************************************
+
+    private void rotateShape(int mouseX, int mouseY) {
+        // Ask the model to rotate the shape.
+        // It will return the angle between the current mouse point and the shape's x axis.
+        // Update the starting angle so the next mouse drag is compared to the newest mouse point.
+        startingAngle = Model.getModel().rotateShape(
+                currentShapeIndex,
+                startingAngle,
+                mouseX,
+                mouseY
+        );
+    }
+
+    private void moveShape(int mouseX, int mouseY) {
+        // Move the selected shape.
+        Model.getModel().moveShape(currentShapeIndex,
+                startingPoint,
+                mouseX - (int)startingPoint.x,
+                mouseY - (int)startingPoint.y);
+
+        // Update the starting mouse coordinates so they next time the mouse
+        // is dragged, the change in x and y will be relative to this mouse
+        // move and not the initial press.
+        startingPoint.x = mouseX;
+        startingPoint.y = mouseY;
+    }
 
     /**
      * @return True if any shape is selected. False otherwise.

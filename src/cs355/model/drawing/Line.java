@@ -109,6 +109,11 @@ public class Line extends Shape {
 
 	}
 
+	@Override
+    public boolean pointInHandle(Point2D.Double pt) {
+	    return false;
+    }
+
 	public void move(Point2D.Double startingPoint) {
 		// Figure out which point to move
 		double distanceStart = Point2D.distance(center.x, center.y, startingPoint.x, startingPoint.y);

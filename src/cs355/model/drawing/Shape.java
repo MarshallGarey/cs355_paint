@@ -1,5 +1,7 @@
 package cs355.model.drawing;
 
+import cs355.view.View;
+
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -118,5 +120,16 @@ public abstract class Shape {
     public void move(double dx, double dy) {
         center.x += dx;
         center.y += dy;
+    }
+
+    public boolean pointInHandle(Point2D.Double pt) {
+        // Transform to object coordinates, then test the boundaries.
+        Point2D.Double selectObjectCoordinates = transformScreenToObjectCoordinates(pt);
+
+        // True if the distance between pt and the center of the handle is less than the radius
+        // of the handle.
+        return (Point2D.Double.distance(selectObjectCoordinates.x,
+                selectObjectCoordinates.y, 0, 0)
+                <= View.HANDLE_RADIUS);
     }
 }

@@ -20,6 +20,7 @@ import java.util.Observer;
 public class View implements ViewRefresher, Observer {
 
     private HighlightShape highlightShape;
+    public static final int HANDLE_RADIUS = 4;
 
     /**
      * Default constructor
@@ -247,7 +248,7 @@ public class View implements ViewRefresher, Observer {
 
     private void drawRotationHandle(int centerX, int centerY, Graphics2D g2d) {
         // I am arbitrarily deciding the default radius of the rotation handle.
-        int handleRadius = 4; // TODO: multiply by scale for zooming in/out
+        int handleRadius = HANDLE_RADIUS; // TODO: multiply by scale for zooming in/out
         int width = handleRadius*2;
         int height = width;
         g2d.drawOval(centerX-handleRadius, centerY-handleRadius, width, height);

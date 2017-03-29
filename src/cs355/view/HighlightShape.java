@@ -8,6 +8,8 @@ import java.awt.geom.Point2D;
 /**
  * Created by Marshall Garey.
  * A HighlightShape contains the data needed to highlight a shape.
+ * The purpose of this class is to store information so it doesn't need to be recalculated.
+ * I'm sure there are better ways to do what I need.
  */
 class HighlightShape {
     HighlightShape() {
