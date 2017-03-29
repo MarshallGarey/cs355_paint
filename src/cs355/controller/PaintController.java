@@ -409,6 +409,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // ***********************************************************************
 
     private void rotateShape(int mouseX, int mouseY) {
+        // TODO: do something different for lines.
+
         // Ask the model to rotate the shape.
         // It will return the angle between the current mouse point and the shape's x axis.
         // Update the starting angle so the next mouse drag is compared to the newest mouse point.
