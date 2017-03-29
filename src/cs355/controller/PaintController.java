@@ -303,7 +303,9 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 Model.getModel().updateObservers();
 
                 if (shapeIsSelected()) {
-                    // A shape was selected.
+                    // A shape was selected. Change the current color indicator to the selected shape's color.
+                    currentColor = Model.getModel().getShape(currentShapeIndex).getColor();
+                    GUIFunctions.changeSelectedColor(currentColor);
                     Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
                             "Selected shape is " +
                             Model.getModel().getShapes().get(currentShapeIndex).toString());

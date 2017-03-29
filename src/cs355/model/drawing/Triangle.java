@@ -9,7 +9,7 @@ import java.awt.geom.Point2D;
  */
 public class Triangle extends Shape {
 
-	// The three points of the triangle.
+	// The three points of the triangle in shape (not world) coordinates.
 	private Point2D.Double a;
 	private Point2D.Double b;
 	private Point2D.Double c;

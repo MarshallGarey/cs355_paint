@@ -1,0 +1,83 @@
+[
+  {
+    "width": 154.0,
+    "height": 49.0,
+    "color": {
+      "value": -39322,
+      "falpha": 0.0
+    },
+    "center": {
+      "x": 291.0,
+      "y": 186.5
+    },
+    "rotation": 0.0,
+    "SHAPE_TYPE": "cs355.model.drawing.Rectangle"
+  },
+  {
+    "a": {
+      "x": 28.666666666666657,
+      "y": 25.0
+    },
+    "b": {
+      "x": 24.666666666666657,
+      "y": -48.0
+    },
+    "c": {
+      "x": -53.33333333333334,
+      "y": 23.0
+    },
+    "color": {
+      "value": -6684775,
+      "falpha": 0.0
+    },
+    "center": {
+      "x": 336.33333333333337,
+      "y": 221.0
+    },
+    "rotation": 0.0,
+    "SHAPE_TYPE": "cs355.model.drawing.Triangle"
+  },
+  {
+    "size": 58.0,
+    "color": {
+      "value": -3407668,
+      "falpha": 0.0
+    },
+    "center": {
+      "x": 336.0,
+      "y": 167.0
+    },
+    "rotation": 0.0,
+    "SHAPE_TYPE": "cs355.model.drawing.Square"
+  },
+  {
+    "end": {
+      "x": 195.0,
+      "y": 256.0
+    },
+    "color": {
+      "value": -39322,
+      "falpha": 0.0
+    },
+    "center": {
+      "x": 60.0,
+      "y": 64.0
+    },
+    "rotation": 0.0,
+    "SHAPE_TYPE": "cs355.model.drawing.Line"
+  },
+  {
+    "width": 328.0,
+    "height": 65.0,
+    "color": {
+      "value": -16776961,
+      "falpha": 0.0
+    },
+    "center": {
+      "x": 203.0,
+      "y": 216.5
+    },
+    "rotation": 0.0,
+    "SHAPE_TYPE": "cs355.model.drawing.Ellipse"
+  }
+]
