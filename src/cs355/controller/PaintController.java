@@ -408,6 +408,11 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // Helper methods
     // ***********************************************************************
 
+    /**
+     * Rotate the current shape
+     * @param mouseX
+     * @param mouseY
+     */
     private void rotateShape(int mouseX, int mouseY) {
         // Ask the model to rotate the shape.
         // It will return the angle between the current mouse point and the shape's x axis.
@@ -420,6 +425,12 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         );
     }
 
+    /**
+     * Move the currently selected shape by the difference
+     * in the old mouse position and the current mouse position
+     * @param mouseX Current Mouse x position
+     * @param mouseY Current Mouse y position
+     */
     private void moveShape(int mouseX, int mouseY) {
         // Move the selected shape.
         Model.getModel().moveShape(currentShapeIndex,

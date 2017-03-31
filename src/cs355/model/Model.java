@@ -21,9 +21,10 @@ import java.util.logging.Logger;
  * The instance of this model will need to call addObserver on the object that implements the Observer class -
  *   in my case, the view needs to observe the model:
  *     model.addObserver(view);
- * Always call the following when the model changes in order for those changes to be reflected in the view:
+ * To make changes in the model be reflected in the view:
  *   this.setChanged();
  *   this.notifyObservers();
+ * I have encapsulated this in this class's redraw() method.
  */
 public class Model extends CS355Drawing {
 
