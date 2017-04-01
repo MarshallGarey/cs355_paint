@@ -149,7 +149,6 @@ public class Model extends CS355Drawing {
         return shapes;
     }
 
-    // TODO: test
     @Override
     public List<Shape> getShapesReversed() {
         ArrayList<Shape> shapesReversed = new ArrayList<>(shapes.size());
@@ -445,6 +444,14 @@ public class Model extends CS355Drawing {
         return -1;
     }
 
+    /**
+     * Move a shape a dx and dy pixels (in world coordinates).
+     *
+     * @param currentShapeIndex Index to the shapes list to the shape to be moved.
+     * @param startingPoint TODO
+     * @param dx Change in x in world coordinates
+     * @param dy Change in y in world coordinates
+     */
     public void moveShape(int currentShapeIndex, Point2D.Double startingPoint, int dx, int dy) {
         Shape s = shapes.get(currentShapeIndex);
 
@@ -461,6 +468,17 @@ public class Model extends CS355Drawing {
         redraw();
     }
 
+    /**
+     * Rotate a shape.
+     * Calculate the change in angle from the startingAngle, mouse position,
+     * and shape position (all in world coordinates).
+     *
+     * @param currentShapeIndex Index to the shapes list of the shape to be rotated.
+     * @param startingAngle Previous angle, subtract from new angle for difference.
+     * @param mouseX Mouse world x position.
+     * @param mouseY Mouse world y position.
+     * @return New angle.
+     */
     public double rotateShape(int currentShapeIndex, double startingAngle, int mouseX, int mouseY) {
 
         // Calculate the angle between the mouse and the x-axis of the shape.
@@ -476,6 +494,14 @@ public class Model extends CS355Drawing {
         return newAngle;
     }
 
+    /**
+     * Calculate the angle from the mouse and the shape's x axis.
+     *
+     * @param mouseX Mouse world x position.
+     * @param mouseY Mouse world y position.
+     * @param shapeIndex Index to the shapes list to get the shape.
+     * @return The angle between mouse and shape's positive x axis.
+     */
     public double findAngleBetweenMouseAndShape(int mouseX, int mouseY, int shapeIndex) {
         Shape s = getShape(shapeIndex);
         Point2D.Double point = s.transformScreenToObjectCoordinates(

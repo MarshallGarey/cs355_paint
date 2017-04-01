@@ -114,6 +114,10 @@ public class Line extends Shape {
 	    return false;
     }
 
+    /**
+     * TODO: fix this
+     * @param startingPoint In world coordinates
+     */
 	public void move(Point2D.Double startingPoint) {
 		// Figure out which point to move
 		double distanceStart = Point2D.distance(center.x, center.y, startingPoint.x, startingPoint.y);

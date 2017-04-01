@@ -64,6 +64,18 @@ public class View implements ViewRefresher, Observer {
         // IMPORTANT: Java applies the transformations in the REVERSE ORDER in which I specify them.
         AffineTransform objToWorld = new AffineTransform();
 
+        // TODO: I need to do these transformations manually
+
+        // TODO: World->view:
+        // Scale
+        double scale = CS355.getController().getCurrentZoom();
+        objToWorld.scale(scale, scale);
+
+        // Translate
+        Point2D.Double viewport = CS355.getController().getViewportOrigin();
+        objToWorld.translate(-viewport.x, -viewport.y);
+
+        // Object->World:
         // Translate
         objToWorld.translate(s.getCenter().x, s.getCenter().y);
 

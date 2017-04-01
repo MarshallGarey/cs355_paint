@@ -50,6 +50,14 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // And keep track of what the points are (for the triangle).
     private ArrayList<Point2D.Double> trianglePoints;
 
+    // Current zoom level
+    private double currentZoom = 1;
+    private final double MIN_ZOOM = 0.25;
+    private final double MAX_ZOOM = 4;
+
+    // Viewport
+    private Point2D.Double viewportOrigin = new Point2D.Double(0,0);
+
     /**
      * Default constructor
      */
@@ -109,21 +117,33 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     @Override
     public void zoomInButtonHit() {
         selectedTool = ZOOM_IN;
+        if (currentZoom < MAX_ZOOM) {
+            currentZoom *= 2;
+            GUIFunctions.setZoomText(currentZoom);
+            // TODO: change horizontal scrollbar size
+            Model.getModel().redraw();
+        }
     }
 
     @Override
     public void zoomOutButtonHit() {
         selectedTool = ZOOM_OUT;
+        if (currentZoom > MIN_ZOOM) {
+            currentZoom /= 2;
+            GUIFunctions.setZoomText(currentZoom);
+            // TODO: change horizontal scrollbar size
+            Model.getModel().redraw();
+        }
     }
 
     @Override
     public void hScrollbarChanged(int value) {
-
+        // TODO: change viewport position and refresh view
     }
 
     @Override
     public void vScrollbarChanged(int value) {
-
+        // TODO: change viewport position and refresh view
     }
 
     @Override
@@ -410,8 +430,10 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     /**
      * Rotate the current shape
-     * @param mouseX
-     * @param mouseY
+     * TODO: transform mouse screen coordinates to world coordinates.
+     *
+     * @param mouseX Current mouse screen x position
+     * @param mouseY Current mouse screen y position
      */
     private void rotateShape(int mouseX, int mouseY) {
         // Ask the model to rotate the shape.
@@ -426,10 +448,15 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     }
 
     /**
-     * Move the currently selected shape by the difference
-     * in the old mouse position and the current mouse position
-     * @param mouseX Current Mouse x position
-     * @param mouseY Current Mouse y position
+     * Move the currently selected shape a number of pixels in world coordinates:
+     *   the difference in the old mouse position and the current mouse position.
+     *
+     * Starting point is in world coordinates, so
+     * TODO: transform the mouse screen coordinates to world coordinates
+     * Use this as the difference.
+     *
+     * @param mouseX Current mouse screen x position
+     * @param mouseY Current mouse screen y position
      */
     private void moveShape(int mouseX, int mouseY) {
         // Move the selected shape.
@@ -469,4 +496,11 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         return (e.getX() > 0) && (e.getY() > 0);
     }
 
+    public double getCurrentZoom() {
+        return currentZoom;
+    }
+
+    public Point2D.Double getViewportOrigin() {
+        return viewportOrigin;
+    }
 }
