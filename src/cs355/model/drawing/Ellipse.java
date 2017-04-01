@@ -76,7 +76,7 @@ public class Ellipse extends Shape {
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
 
 		// Transform to object coordinates
-		Point2D selectedPoint = transformScreenToObjectCoordinates(pt);
+		Point2D selectedPoint = transformWorldToObjectCoordinates(pt);
 
 		// The intersect test for an ellipse is the following:
 		//   ((ptX-centerX)/radiusX)^2 + ((ptY-centerY)/radiusY)^2 <= 1

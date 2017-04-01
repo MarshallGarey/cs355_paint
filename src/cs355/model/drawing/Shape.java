@@ -92,15 +92,15 @@ public abstract class Shape {
     /**
      * Transform the selection point pt to object coordinates (inverse translate, inverse rotate).
      * Remember that the transformation operations are performed in reverse order that I call them.
-     * @param screenXY The selection screen xy coordinates.
+     * @param point The selection world xy coordinates.
      * @return The object xy coordinates.
      */
-    public Point2D.Double transformScreenToObjectCoordinates(Point2D.Double screenXY) {
+    public Point2D.Double transformWorldToObjectCoordinates(Point2D.Double point) {
         Point2D.Double selectObjectCoordinates = new Point2D.Double();
         AffineTransform transform = new AffineTransform();
         transform.rotate(-rotation);
         transform.translate(-center.x, -center.y);
-        transform.transform(screenXY, selectObjectCoordinates);
+        transform.transform(point, selectObjectCoordinates);
         return selectObjectCoordinates;
     }
 
@@ -124,7 +124,7 @@ public abstract class Shape {
 
     public boolean pointInHandle(Point2D.Double pt) {
         // Transform to object coordinates, then test the boundaries.
-        Point2D.Double selectObjectCoordinates = transformScreenToObjectCoordinates(pt);
+        Point2D.Double selectObjectCoordinates = transformWorldToObjectCoordinates(pt);
 
         // True if the distance between pt and the center of the handle is less than the radius
         // of the handle.

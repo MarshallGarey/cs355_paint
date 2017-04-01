@@ -6,7 +6,6 @@ import cs355.model.drawing.Rectangle;
 import cs355.model.drawing.Shape;
 
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -179,7 +178,7 @@ public class Model extends CS355Drawing {
 
     public void modifyShape(int currentShapeIndex, // Where the shape is in the shapes list
                             PaintController.Tool selectedTool, // Which shape
-                            MouseEvent e, // Contains position of the mouse
+                            Point2D.Double point, // Position of the mouse
                             Point2D.Double drawStartingPoint // Starting position of drawing, needed for some shapes
     ) {
         // Do nothing if the shape is invalid.
@@ -197,35 +196,35 @@ public class Model extends CS355Drawing {
         switch (selectedTool) {
             case LINE:
                 if (s instanceof Line)
-                    modifyLine(s, e);
+                    modifyLine(s, point);
                 else
                     Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
                             "ERROR in modifyShape: shape isn't a line");
                 break;
             case SQUARE:
                 if (s instanceof Square)
-                    modifySquare(s, e, drawStartingPoint);
+                    modifySquare(s, point, drawStartingPoint);
                 else
                     Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
                             "ERROR in modifyShape: shape isn't a square");
                 break;
             case RECTANGLE:
                 if (s instanceof Rectangle)
-                    modifyRectangle(s, e, drawStartingPoint);
+                    modifyRectangle(s, point, drawStartingPoint);
                 else
                     Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
                             "ERROR in modifyShape: shape isn't a rectangle");
                 break;
             case CIRCLE:
                 if (s instanceof Circle)
-                    modifyCircle(s, e, drawStartingPoint);
+                    modifyCircle(s, point, drawStartingPoint);
                 else
                     Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
                             "ERROR in modifyShape: shape isn't a circle");
                 break;
             case ELLIPSE:
                 if (s instanceof Ellipse)
-                    modifyEllipse(s, e, drawStartingPoint);
+                    modifyEllipse(s, point, drawStartingPoint);
                 else
                     Logger.getLogger(CS355Drawing.class.getName()).log(Level.SEVERE,
                             "ERROR in modifyShape: shape isn't an ellipse");
@@ -238,7 +237,7 @@ public class Model extends CS355Drawing {
         redraw();
     }
 
-    private Point2D.Double findUpperLeft(MouseEvent e, Point2D.Double drawStartingPoint,
+    private Point2D.Double findUpperLeft(Point2D.Double mouse, Point2D.Double drawStartingPoint,
                                          double width, double height) {
         Point2D.Double upperLeft = new Point2D.Double();
 
@@ -246,12 +245,12 @@ public class Model extends CS355Drawing {
         // Keep in mind the coordinate system: (0,0) is top-left of the canvas.
 
         // Mouse is above starting corner.
-        if (e.getY() < drawStartingPoint.y) {
+        if (mouse.getY() < drawStartingPoint.y) {
             // Set the upper-left corner above the starting corner by the size.
             upperLeft.y = drawStartingPoint.y - height;
 
             // If the mouse is to the left, set upper-left corner left of the starting corner by the size.
-            if (e.getX() < drawStartingPoint.x) {
+            if (mouse.getX() < drawStartingPoint.x) {
                 upperLeft.x = drawStartingPoint.x - width;
             }
             // Otherwise, the upper-left corner has the same x position as the starting corner.
@@ -264,7 +263,7 @@ public class Model extends CS355Drawing {
             upperLeft.y = drawStartingPoint.y;
             // If mouse event is left of current upper left corner,
             // set the upper-left corner left of the starting corner by the size.
-            if (e.getX() < drawStartingPoint.x) {
+            if (mouse.getX() < drawStartingPoint.x) {
                 upperLeft.x = drawStartingPoint.x - width;
             }
             // Otherwise, the starting point is the upper-left corner.
@@ -275,70 +274,70 @@ public class Model extends CS355Drawing {
         return upperLeft;
     }
 
-    private void modifyEllipse(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
+    private void modifyEllipse(Shape s, Point2D.Double mouse, Point2D.Double drawStartingPoint) {
         Ellipse ellipse = (Ellipse) s;
 
         // Find the radius: use the differences in X and Y.
-        double width = Math.abs(drawStartingPoint.x - e.getX());
-        double height = Math.abs(drawStartingPoint.y - e.getY());
+        double width = Math.abs(drawStartingPoint.x - mouse.getX());
+        double height = Math.abs(drawStartingPoint.y - mouse.getY());
         ellipse.setWidth(width);
         ellipse.setHeight(height);
 
         // Find which corner is upper left.
-        Point2D upperLeft = findUpperLeft(e, drawStartingPoint, width, height);
+        Point2D upperLeft = findUpperLeft(mouse, drawStartingPoint, width, height);
 
         // Now set the center of the circle.
         ellipse.getCenter().x = upperLeft.getX() + (width / 2);
         ellipse.getCenter().y = upperLeft.getY() + (height / 2);
     }
 
-    private void modifyCircle(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
+    private void modifyCircle(Shape s, Point2D.Double mouse, Point2D.Double drawStartingPoint) {
         Circle circle = (Circle) s;
 
         // Find the radius: use the smaller of the differences in X and Y.
-        double xDiff = Math.abs(drawStartingPoint.x - e.getX());
-        double yDiff = Math.abs(drawStartingPoint.y - e.getY());
+        double xDiff = Math.abs(drawStartingPoint.x - mouse.getX());
+        double yDiff = Math.abs(drawStartingPoint.y - mouse.getY());
         double diameter = (xDiff < yDiff) ? xDiff : yDiff;
         double radius = diameter / 2;
         circle.setRadius(radius);
 
         // Find which corner is upper left.
-        Point2D upperLeft = findUpperLeft(e, drawStartingPoint, diameter, diameter);
+        Point2D upperLeft = findUpperLeft(mouse, drawStartingPoint, diameter, diameter);
 
         // Now set the center of the circle.
         circle.getCenter().x = upperLeft.getX() + radius;
         circle.getCenter().y = upperLeft.getY() + radius;
     }
 
-    private void modifyRectangle(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
+    private void modifyRectangle(Shape s, Point2D.Double mouse, Point2D.Double drawStartingPoint) {
         Rectangle rectangle = (Rectangle) s;
 
         // Find the width and height: use the differences in X and Y.
-        double width = Math.abs(drawStartingPoint.x - e.getX());
-        double height = Math.abs(drawStartingPoint.y - e.getY());
+        double width = Math.abs(drawStartingPoint.x - mouse.getX());
+        double height = Math.abs(drawStartingPoint.y - mouse.getY());
         rectangle.setWidth(width);
         rectangle.setHeight(height);
 
         // Find which corner is upper left (it can change).
-        rectangle.setCenter(rectangle.findCenter(findUpperLeft(e, drawStartingPoint, width, height)));
+        rectangle.setCenter(rectangle.findCenter(findUpperLeft(mouse, drawStartingPoint, width, height)));
     }
 
-    private void modifySquare(Shape s, MouseEvent e, Point2D.Double drawStartingPoint) {
+    private void modifySquare(Shape s, Point2D.Double mouse, Point2D.Double drawStartingPoint) {
         Square square = (Square) s;
 
         // Find the size: the smaller of the difference in X or Y.
-        double xDiff = Math.abs(drawStartingPoint.x - e.getX());
-        double yDiff = Math.abs(drawStartingPoint.y - e.getY());
+        double xDiff = Math.abs(drawStartingPoint.x - mouse.getX());
+        double yDiff = Math.abs(drawStartingPoint.y - mouse.getY());
         double size = (xDiff < yDiff) ? xDiff : yDiff;
         square.setSize(size);
 
         // Find which corner is upper left (it can change).
-        square.setCenter(square.findCenter(findUpperLeft(e, drawStartingPoint, size, size)));
+        square.setCenter(square.findCenter(findUpperLeft(mouse, drawStartingPoint, size, size)));
     }
 
-    private void modifyLine(Shape s, MouseEvent e) {
+    private void modifyLine(Shape s, Point2D.Double mouse) {
         Line l = (Line)s;
-        Point2D.Double end = new Point2D.Double(e.getX() - l.getCenter().x, e.getY() - l.getCenter().y);
+        Point2D.Double end = new Point2D.Double(mouse.getX() - l.getCenter().x, mouse.getY() - l.getCenter().y);
         l.setEnd(end);
     }
 
@@ -348,51 +347,44 @@ public class Model extends CS355Drawing {
      * The makeNewShape method figures out which shape to make. It returns the index of the shape in the list.
      */
 
-    public int makeNewShape(PaintController.Tool selectedTool, MouseEvent e, Color currentColor) {
+    public int makeNewShape(PaintController.Tool selectedTool, Point2D.Double point, Color currentColor) {
         switch (selectedTool) {
             case LINE:
-                return makeNewLine(e, currentColor);
+                return makeNewLine(point, currentColor);
             case SQUARE:
-                return makeNewSquare(e, currentColor);
+                return makeNewSquare(point, currentColor);
             case RECTANGLE:
-                return makeNewRectangle(e, currentColor);
+                return makeNewRectangle(point, currentColor);
             case CIRCLE:
-                return makeNewCircle(e, currentColor);
+                return makeNewCircle(point, currentColor);
             case ELLIPSE:
-                return makeNewEllipse(e, currentColor);
+                return makeNewEllipse(point, currentColor);
             default:
                 // indicate that no shape was added
                 return -1;
         }
     }
 
-    private int makeNewCircle(MouseEvent e, Color currentColor) {
-        Point2D.Double center = new Point2D.Double(e.getX(), e.getY());
+    private int makeNewCircle(Point2D.Double center, Color currentColor) {
         return addShape(new Circle(currentColor, center, 0));
     }
 
-    private int makeNewEllipse(MouseEvent e, Color currentColor) {
-        Point2D.Double center = new Point2D.Double(e.getX(), e.getY());
+    private int makeNewEllipse(Point2D.Double center, Color currentColor) {
         return addShape(new Ellipse(currentColor, center, 0, 0));
     }
 
-    private int makeNewSquare(MouseEvent e, Color currentColor) {
-        Point2D.Double center = new Point2D.Double(e.getX(), e.getY());
+    private int makeNewSquare(Point2D.Double center, Color currentColor) {
         return addShape(new Square(currentColor, center, 0));
     }
 
-    private int makeNewRectangle(MouseEvent e, Color currentColor) {
-        Point2D.Double center = new Point2D.Double(e.getX(), e.getY());
+    private int makeNewRectangle(Point2D.Double center, Color currentColor) {
         return addShape(new Rectangle(currentColor, center, 0, 0));
     }
 
-    private int makeNewLine(MouseEvent e, Color currentColor) {
+    private int makeNewLine(Point2D.Double point, Color currentColor) {
         // Endpoints: start and end are in the same place, initially.
-        Point2D.Double start = new Point2D.Double(e.getX(), e.getY());
-        Point2D.Double end = new Point2D.Double(e.getX(), e.getY());
-
         // Add the line to the model.
-        return addShape(new Line(currentColor, start, end));
+        return addShape(new Line(currentColor, point, point));
     }
 
     /**
@@ -420,19 +412,19 @@ public class Model extends CS355Drawing {
 
     /**
      * Determine which (if any) shape was selected.
-     * @param screenX The x coordinate of the selection.
-     * @param screenY The y coordinate of the selection.
+     * @param x The x coordinate of the selection.
+     * @param y The y coordinate of the selection.
      * @return The index of the selected shape, or -1 if no shape was selected.
      */
-    public int selectShape(int screenX, int screenY) {
+    public int selectShape(int x, int y) {
 
-        // I am arbitrarily choosing the tolerance here - how close to the line a click
-        // is to be considered a hit.
+        // TODO: tolerance should be 4
         double tolerance = 20.0;
 
-        // This selected point is currently in screen coordinates. It will be translated to object coordinates
+        // This selected point is currently in world coordinates.
+        // It will be translated to object coordinates
         // when tested if it intersects with an object.
-        Point2D.Double selectedPoint = new Point2D.Double((double) screenX, (double) screenY);
+        Point2D.Double selectedPoint = new Point2D.Double((double) x, (double) y);
 
         // Test every shape, in forward order (most front one first, most rear one last).
         for (int i = shapes.size() - 1; i >= 0; i--) {
@@ -504,7 +496,7 @@ public class Model extends CS355Drawing {
      */
     public double findAngleBetweenMouseAndShape(int mouseX, int mouseY, int shapeIndex) {
         Shape s = getShape(shapeIndex);
-        Point2D.Double point = s.transformScreenToObjectCoordinates(
+        Point2D.Double point = s.transformWorldToObjectCoordinates(
                 new Point2D.Double(mouseX, mouseY));
         return Math.atan2(point.y, point.x);
     }

@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
@@ -61,7 +62,11 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     private final int CANVAS_MAX = 2048;
     private final int VIEW_MAX = 512;
 
-    private boolean scrollBarChanging = false;
+    // When zooming in/out, I change the size and position of the scrollbars.
+    // This causes the scrollbarChanged functions to get called.
+    // In those functions, check if this value is true; if so, the view
+    // doesn't need to be refreshed again.
+    private boolean viewRefreshed = false;
 
     /**
      * Default constructor
@@ -71,7 +76,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     public void init() {
         // Initialize the scroll bars
         setScrollbars();
-
         GUIFunctions.setHScrollBarMax(CANVAS_MAX);
         GUIFunctions.setVScrollBarMax(CANVAS_MAX);
     }
@@ -129,47 +133,45 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void zoomInButtonHit() {
-        selectedTool = ZOOM_IN;
         if (currentZoom < MAX_ZOOM) {
             currentZoom *= 2;
             GUIFunctions.setZoomText(currentZoom);
 
             // Change size and position of scrollbars
-            scrollBarChanging = true;
+            viewRefreshed = true;
             setScrollbars();
             GUIFunctions.refresh();
-            scrollBarChanging = false;
+            viewRefreshed = false;
         }
     }
 
     @Override
     public void zoomOutButtonHit() {
-        selectedTool = ZOOM_OUT;
         if (currentZoom > MIN_ZOOM) {
             currentZoom /= 2;
             GUIFunctions.setZoomText(currentZoom);
 
             // Change size and position of scrollbars
-            scrollBarChanging = true;
+            viewRefreshed = true;
             setScrollbars();
             GUIFunctions.refresh();
-            scrollBarChanging = false;
+            viewRefreshed = false;
         }
     }
 
     @Override
     public void hScrollbarChanged(int value) {
-        // TODO: change viewport position and refresh view
+        // Change viewport position and refresh view
         viewportOrigin.x = value;
-        if (!scrollBarChanging)
+        if (!viewRefreshed)
             GUIFunctions.refresh();
     }
 
     @Override
     public void vScrollbarChanged(int value) {
-        // TODO: change viewport position and refresh view
+        // Change viewport position and refresh view
         viewportOrigin.y = value;
-        if (!scrollBarChanging)
+        if (!viewRefreshed)
             GUIFunctions.refresh();
     }
 
@@ -295,20 +297,27 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        if (!mouseInCanvas(e)) {
+            return;
+        }
+
+        // Transform mouse screen coordinates to world coordinates.
+        Point2D.Double mouseWorld = viewToWorld(e.getX(), e.getY());
+
         switch (selectedTool) {
             case TRIANGLE:
                 switch (triangleNumPointsSelected) {
                     case 0:
                         trianglePoints = new ArrayList<>();
-                        trianglePoints.add(new Point2D.Double(e.getX(), e.getY()));
+                        trianglePoints.add(mouseWorld);
                         triangleNumPointsSelected++;
                         break;
                     case 1:
-                        trianglePoints.add(new Point2D.Double(e.getX(), e.getY()));
+                        trianglePoints.add(mouseWorld);
                         triangleNumPointsSelected++;
                         break;
                     case 2:
-                        trianglePoints.add(new Point2D.Double(e.getX(), e.getY()));
+                        trianglePoints.add(mouseWorld);
                         Model.getModel().makeNewTriangle(currentColor, trianglePoints);
                         triangleNumPointsSelected = 0;
                         break;
@@ -323,22 +332,23 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mousePressed(MouseEvent e) {
-//        GUIFunctions.printf("Mouse pressed");
         // Do nothing if the mouse press wasn't in the canvas.
         if (!mouseInCanvas(e)) {
-            Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, "mousePressed not in canvas");
             return;
         }
 
+        // Transform mouse screen coordinates to world coordinates.
+        Point2D.Double mouseWorld = viewToWorld(e.getX(), e.getY());
+
         // Retain the coordinates of the initial mouse press.
         // They're used when modifying/moving shapes.
-        startingPoint = new Point2D.Double(e.getX(), e.getY());
+        startingPoint = new Point2D.Double(mouseWorld.getX(), mouseWorld.getY());
 
         // Do something depending on the selected tool.
         switch (selectedTool) {
             // For every shape, just create a new shape.
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
-                currentShapeIndex = Model.getModel().makeNewShape(selectedTool, e, currentColor);
+                currentShapeIndex = Model.getModel().makeNewShape(selectedTool, mouseWorld, currentColor);
                 break;
             case SELECT:
                 // If a shape is currently selected, test if a handle is being selected.
@@ -347,7 +357,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 // instead of move when dragged.
                 if (shapeIsSelected() &&
                         (rotateCurrentShape = Model.getModel().getShape(currentShapeIndex).pointInHandle(
-                            new Point2D.Double(e.getX(), e.getY())
+                            new Point2D.Double(mouseWorld.getX(), mouseWorld.getY())
                     ))) {
 
                     // Debugging
@@ -356,7 +366,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
                     // Store starting angle in object coordinates. Used for rotating shapes.
                     startingAngle = Model.getModel().findAngleBetweenMouseAndShape(
-                            e.getX(), e.getY(), currentShapeIndex);
+                            (int)mouseWorld.getX(), (int)mouseWorld.getY(), currentShapeIndex);
 
                     // Return without doing the selection test for shapes.
                     return;
@@ -365,7 +375,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 // Test for shape selection.
                 // Model.selectShape will return the index of the selected shape,
                 // or a negative number if the selected point was not inside any shape.
-                currentShapeIndex = Model.getModel().selectShape(e.getX(), e.getY());
+                currentShapeIndex = Model.getModel().selectShape(
+                        (int)mouseWorld.getX(), (int)mouseWorld.getY());
 
                 // Redraw the screen to update the highlights
                 // TODO: only do this if a currentShapeIndex changed
@@ -395,12 +406,14 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        Point2D.Double mouseWorld = viewToWorld(e.getX(), e.getY());
+
         // Do something depending on the selected tool.
         switch (selectedTool) {
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE:
                 int shape = currentShapeIndex;
                 currentShapeIndex = NO_SHAPE_SELECTED;
-                Model.getModel().modifyShape(shape, selectedTool, e, startingPoint);
+                Model.getModel().modifyShape(shape, selectedTool, mouseWorld, startingPoint);
                 break;
             default:
                 break;
@@ -418,7 +431,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void mouseExited(MouseEvent e) {
-        GUIFunctions.printf("");
     }
 
     @Override
@@ -427,17 +439,19 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         if (!shapeIsSelected()) {
             return;
         }
+
+        Point2D.Double mouseWorld = viewToWorld(e.getX(), e.getY());
         switch(selectedTool) {
             case LINE: case SQUARE: case RECTANGLE: case CIRCLE: case ELLIPSE: case TRIANGLE:
-                Model.getModel().modifyShape(currentShapeIndex, selectedTool, e, startingPoint);
+                Model.getModel().modifyShape(currentShapeIndex, selectedTool, mouseWorld, startingPoint);
                 break;
             case SELECT:
                 // Find out whether to rotate or move the shape.
                 if (rotateCurrentShape) {
-                    rotateShape(e.getX(), e.getY());
+                    rotateShape((int)mouseWorld.getX(), (int)mouseWorld.getY());
                 }
                 else {
-                    moveShape(e.getX(), e.getY());
+                    moveShape((int)mouseWorld.getX(), (int)mouseWorld.getY());
                 }
                 break;
             default:
@@ -455,11 +469,33 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // ***********************************************************************
 
     /**
-     * Rotate the current shape
-     * TODO: transform mouse screen coordinates to world coordinates.
+     * Transform screen coordinates to world coordinates:
+     *   (1) reverse scale (1/zoom),
+     *   (2) translate (origin or world to origin of viewport)
      *
-     * @param mouseX Current mouse screen x position
-     * @param mouseY Current mouse screen y position
+     * @param x Screen x coordinate
+     * @param y Screen y coordinate
+     * @return The world coordinates of the screen (x,y) position
+     */
+    private Point2D.Double viewToWorld(int x, int y) {
+        Point2D.Double worldPoint = new Point2D.Double(x,y);
+
+        // Inverse scale
+        worldPoint.x /= currentZoom;
+        worldPoint.y /= currentZoom;
+
+        // Translate
+        worldPoint.x += viewportOrigin.x;
+        worldPoint.y += viewportOrigin.y;
+
+        return worldPoint;
+    }
+
+    /**
+     * Rotate the current shape
+     *
+     * @param mouseX Current mouse world x position
+     * @param mouseY Current mouse world y position
      */
     private void rotateShape(int mouseX, int mouseY) {
         // Ask the model to rotate the shape.
@@ -477,12 +513,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
      * Move the currently selected shape a number of pixels in world coordinates:
      *   the difference in the old mouse position and the current mouse position.
      *
-     * Starting point is in world coordinates, so
-     * TODO: transform the mouse screen coordinates to world coordinates
-     * Use this as the difference.
-     *
-     * @param mouseX Current mouse screen x position
-     * @param mouseY Current mouse screen y position
+     * @param mouseX Current mouse world x position
+     * @param mouseY Current mouse world y position
      */
     private void moveShape(int mouseX, int mouseY) {
         // Move the selected shape.
@@ -522,11 +554,20 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         return (e.getX() > 0) && (e.getY() > 0);
     }
 
+    /**
+     * Change the scrollbar size and position to match the zoom level
+     */
     private void setScrollbars() {
-        GUIFunctions.setHScrollBarPosit(0);
-        GUIFunctions.setVScrollBarPosit(0);
         GUIFunctions.setHScrollBarKnob((int)(VIEW_MAX / currentZoom));
         GUIFunctions.setVScrollBarKnob((int)(VIEW_MAX / currentZoom));
+
+        // TODO: viewport position should be set elsewhere; match scrollbar positions to viewport
+        viewportOrigin.x = viewportOrigin.y = 0;
+        GUIFunctions.setHScrollBarPosit(0);
+        GUIFunctions.setVScrollBarPosit(0);
+
+//        GUIFunctions.setHScrollBarPosit((int)viewportOrigin.x);
+//        GUIFunctions.setHScrollBarPosit((int)viewportOrigin.y);
     }
 
     // ***********************************************************************

@@ -111,14 +111,14 @@ public class Triangle extends Shape {
 	/**
 	 * Add your code to do an intersection test
 	 * here. You shouldn't need the tolerance.
-	 * @param pt = the point to test against.
+	 * @param pt = the point to test against (world coordinates).
 	 * @param tolerance = the allowable tolerance.
 	 * @return true if pt is in the shape,
 	 *		   false otherwise.
 	 */
 	@Override
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
-		Point2D.Double selectObjectPoint = transformScreenToObjectCoordinates(pt);
+		Point2D.Double selectObjectPoint = transformWorldToObjectCoordinates(pt);
 
 		/* Do the following tests to find out which side of each line segment
 		the point is on.

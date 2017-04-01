@@ -1,7 +1,5 @@
 package cs355.model.drawing;
 
-import cs355.solution.CS355;
-
 import java.awt.Color;
 import java.awt.geom.Point2D;
 
@@ -61,7 +59,7 @@ public class Circle extends Shape {
     public boolean pointInShape(Point2D.Double pt, double tolerance) {
 
         // Transform to object coordinates
-        Point2D selectedPoint = transformScreenToObjectCoordinates(pt);
+        Point2D selectedPoint = transformWorldToObjectCoordinates(pt);
 
         // Get distance from center (which is 0,0) to selection: sqrt(x^2 + y^2)
         double distance = Math.sqrt(
