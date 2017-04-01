@@ -58,10 +58,23 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // Viewport
     private Point2D.Double viewportOrigin = new Point2D.Double(0,0);
 
+    private final int CANVAS_MAX = 2048;
+    private final int VIEW_MAX = 512;
+
+    private boolean scrollBarChanging = false;
+
     /**
      * Default constructor
      */
     public PaintController() {}
+
+    public void init() {
+        // Initialize the scroll bars
+        setScrollbars();
+
+        GUIFunctions.setHScrollBarMax(CANVAS_MAX);
+        GUIFunctions.setVScrollBarMax(CANVAS_MAX);
+    }
 
     @Override
     public void colorButtonHit(Color c) {
@@ -120,8 +133,12 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         if (currentZoom < MAX_ZOOM) {
             currentZoom *= 2;
             GUIFunctions.setZoomText(currentZoom);
-            // TODO: change horizontal scrollbar size
-            Model.getModel().redraw();
+
+            // Change size and position of scrollbars
+            scrollBarChanging = true;
+            setScrollbars();
+            GUIFunctions.refresh();
+            scrollBarChanging = false;
         }
     }
 
@@ -131,19 +148,29 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         if (currentZoom > MIN_ZOOM) {
             currentZoom /= 2;
             GUIFunctions.setZoomText(currentZoom);
-            // TODO: change horizontal scrollbar size
-            Model.getModel().redraw();
+
+            // Change size and position of scrollbars
+            scrollBarChanging = true;
+            setScrollbars();
+            GUIFunctions.refresh();
+            scrollBarChanging = false;
         }
     }
 
     @Override
     public void hScrollbarChanged(int value) {
         // TODO: change viewport position and refresh view
+        viewportOrigin.x = value;
+        if (!scrollBarChanging)
+            GUIFunctions.refresh();
     }
 
     @Override
     public void vScrollbarChanged(int value) {
         // TODO: change viewport position and refresh view
+        viewportOrigin.y = value;
+        if (!scrollBarChanging)
+            GUIFunctions.refresh();
     }
 
     @Override
@@ -184,7 +211,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     @Override
     public void openDrawing(File file) {
         Model.getModel().open(file);
-        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO, "OpenDrawing");
     }
 
     @Override
@@ -495,6 +521,17 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     private boolean mouseInCanvas(MouseEvent e) {
         return (e.getX() > 0) && (e.getY() > 0);
     }
+
+    private void setScrollbars() {
+        GUIFunctions.setHScrollBarPosit(0);
+        GUIFunctions.setVScrollBarPosit(0);
+        GUIFunctions.setHScrollBarKnob((int)(VIEW_MAX / currentZoom));
+        GUIFunctions.setVScrollBarKnob((int)(VIEW_MAX / currentZoom));
+    }
+
+    // ***********************************************************************
+    // Getters/setters
+    // ***********************************************************************
 
     public double getCurrentZoom() {
         return currentZoom;

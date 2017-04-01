@@ -25,6 +25,7 @@ public class CS355 {
 		controller = new PaintController();
 		View view = new View();
 		GUIFunctions.createCS355Frame(controller, view);
+        controller.init();
 
 		GUIFunctions.refresh();
 
