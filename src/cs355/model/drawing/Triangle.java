@@ -29,7 +29,12 @@ public class Triangle extends Shape {
 		// Initialize the superclass.
 		super(color, center);
 
-		// Set fields.
+		// Set fields. We actually want these to be organized in a specific order,
+        // such that going from a->b->c->a goes clockwise around the triangle.
+        // This makes selection testing much simpler.
+
+        // Find which point has the leftmost (smallest) x. This is point A.
+
 		this.a = a;
 		this.b = b;
 		this.c = c;
@@ -130,39 +135,8 @@ public class Triangle extends Shape {
 		boolean sideB =	pointOnTriangleSide(selectObjectPoint, c, b);
 		boolean sideC = pointOnTriangleSide(selectObjectPoint, a, c);
 
-		/*
-		Figure out if the line segments are top-bottom or bottom-top.
-		If they're top-bottom, apply the positive test (sideA,B,C are all true).
-		Otherwise, apply the negative test (all false).
+        return (sideA == sideB) && (sideB == sideC);
 
-		Do this by testing dx from b->a->c;
-		  If 2 of the 3 dx are 0 or positive, we went counter-clockwise and
-		  need to use the left-side (negative) test.
-		  If 2 of the 3 dx are 0 or negative, we went clockwise and
-		  need to use the right-side (positive) test.
-		*/
-		boolean dx1positive = (b.x - a.x) >= 0;
-		boolean dx2positive = (c.x - b.x) >= 0;
-		boolean dx3positive = (a.x - c.x) >= 0;
-
-		// If at least 2 of 3 of dx1positive/dx2positive/dx3positive are true,
-		// use the ccw test. Otherwise, use the cw test.
-		if (atLeastTwo(dx1positive, dx2positive, dx3positive)) {
-			return sideA && sideB && sideC;
-		}
-		else {
-			return !sideA && !sideB && !sideC;
-		}
-	}
-
-	/**
-	 * @param a Condition
-	 * @param b Condition
-	 * @param c Condition
-	 * @return True if at least 2 of a,b,c are true. False otherwise.
-	 */
-	private boolean atLeastTwo(boolean a, boolean b, boolean c) {
-		return a ? (b || c) : (b && c);
 	}
 
 	/**
@@ -174,7 +148,7 @@ public class Triangle extends Shape {
 	 * @param triA One triangle vertex.
 	 * @param triB Another triangle vertex.
 	 * @return True if the point is on the "right" side of the line segment,
-	 * if triA is the top vertex and triA is the bottom.
+	 * if triB is the top vertex and triA is the bottom.
 	 */
 	private boolean pointOnTriangleSide(Point2D.Double pt, Point2D.Double triA, Point2D.Double triB) {
 		double xDot = (pt.x - triA.x) * (triB.y - triA.y);
