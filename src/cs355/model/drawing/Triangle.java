@@ -29,12 +29,6 @@ public class Triangle extends Shape {
 		// Initialize the superclass.
 		super(color, center);
 
-		// Set fields. We actually want these to be organized in a specific order,
-        // such that going from a->b->c->a goes clockwise around the triangle.
-        // This makes selection testing much simpler.
-
-        // Find which point has the leftmost (smallest) x. This is point A.
-
 		this.a = a;
 		this.b = b;
 		this.c = c;
