@@ -2,7 +2,7 @@ package cs355.controller;
 
 import cs355.GUIFunctions;
 import cs355.model.Model;
-import cs355.model.drawing.*;
+import cs355.model.drawing.CS355Drawing;
 import cs355.model.drawing.Shape;
 import cs355.view.View;
 
@@ -10,7 +10,6 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
@@ -72,6 +71,9 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // doesn't need to be refreshed again.
     private boolean viewRefreshed = false;
 
+    // For debugging
+    private boolean ADD_TEST_SHAPES = false;
+
     /**
      * Default constructor
      */
@@ -84,7 +86,13 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         GUIFunctions.setHScrollBarMax(CANVAS_MAX);
         GUIFunctions.setVScrollBarMax(CANVAS_MAX);
 
-        // Manually create a shape for testing purposes
+        if (ADD_TEST_SHAPES) {
+            makeTestShapes();
+        }
+    }
+
+    private void makeTestShapes() {
+        // Manually add shapes for debugging
         int start = 256;
         int size = 40;
         Model.getModel().makeNewShape(
@@ -190,9 +198,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         viewportOrigin.x = value;
         if (!viewRefreshed)
             GUIFunctions.refresh();
-
-        Logger.getLogger(CS355Drawing.class.getName()).log(
-                Level.INFO,"hScrollbar at " + value);
     }
 
     @Override
@@ -201,9 +206,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         viewportOrigin.y = value;
         if (!viewRefreshed)
             GUIFunctions.refresh();
-
-        Logger.getLogger(CS355Drawing.class.getName()).log(
-                Level.INFO,"vScrollbar at " + value);
     }
 
     @Override
@@ -604,14 +606,14 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
         // Values I only need to calculate once but use multiple times
         int halfScrollbarSize = scrollbarSize / 2;
-        int maxScrollbarPos = CANVAS_MAX - scrollbarSize;
+        int maxScrollbarPos = CANVAS_SIZE - scrollbarSize;
 
         // Find horizontal scrollbar position
         int positionX = screenCenterX - halfScrollbarSize;
         if (positionX < 0) {
             positionX = 0;
         } else if (positionX > (maxScrollbarPos)) {
-            positionX = CANVAS_MAX - scrollbarSize;
+            positionX = maxScrollbarPos;
         }
 
         // Find vertical scrollbar position
@@ -619,8 +621,11 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         if (positionY < 0) {
             positionY = 0;
         } else if (positionY > (maxScrollbarPos)) {
-            positionY = CANVAS_MAX - scrollbarSize;
+            positionY = maxScrollbarPos;
         }
+
+        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+                "scrollbar positions (x,y) = " + positionX + ", " + positionY);
 
         // Set positions of scrollbars
         GUIFunctions.setHScrollBarPosit(positionX);

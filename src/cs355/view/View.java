@@ -57,39 +57,15 @@ public class View implements ViewRefresher, Observer {
      */
     private void drawShape(Shape s, Graphics2D g2d) {
         g2d.setColor(s.getColor());
+        AffineTransform objToView = calculateTransformation(s);
+        g2d.setTransform(objToView);
 
-        // We need to transform the object coordinates to world/screen coordinates
-        // (which are the same thing for now - they'll be different later):
-        //     First rotate, then translate.
-        // IMPORTANT: Java applies the transformations in the REVERSE ORDER in which I specify them.
-        AffineTransform objToWorld = new AffineTransform();
-
-        // TODO: I need to do these transformations manually
-
-        // TODO: World->view:
-        // Scale
-        double scale = CS355.getController().getCurrentZoom();
-        objToWorld.scale(scale, scale);
-
-        // Translate
-        Point2D.Double viewport = CS355.getController().getViewportOrigin();
-        objToWorld.translate(-viewport.x, -viewport.y);
-
-        // Object->World:
-        // Translate
-        objToWorld.translate(s.getCenter().x, s.getCenter().y);
-
-        // Rotate
-        objToWorld.rotate(s.getRotation());
-
-        // Apply the transformation
-        g2d.setTransform(objToWorld);
-
-        // If this shape selected, we want to highlight it and draw a handle at the end.
+        // If this shape selected, we want to highlight it and draw a handle at the end,
+        // so we need to save the shape and its transformation to avoid recalculation
         boolean selected = CS355.getController().isSelected(s);
         if (selected) {
             highlightShape.shape = s;
-            highlightShape.objTransform = objToWorld;
+            highlightShape.objTransform = objToView;
         }
 
         // Now draw the appropriate shape:
@@ -111,6 +87,78 @@ public class View implements ViewRefresher, Observer {
         else if (s instanceof Triangle) {
             drawTriangle(s, g2d, selected);
         }
+    }
+
+    private AffineTransform calculateTransformation(Shape s) {
+
+        // We need to transform the object coordinates from object->world->view coordinates
+        //     Object->world: first rotate, then translate.
+        //     World->view: inverse translate, scale
+        // The final matrix will look like this:
+        // scale(rotateX) scale(-rotateY) scale(centerX-viewX)
+        // scale(rotateY) scale(rotateX)  scale(centerY-viewY)
+        // 0              0               1
+        //
+        // The AffineTransform expects the following matrix entries to its constructor:
+        // xScale xShear xTranslate
+        // yShear yScale yTranslate
+        // 0      0      1
+/*
+        // Rotation:
+        double xRotate = Math.cos(s.getRotation());
+        double yRotate = Math.sin(s.getRotation()); // shearing
+
+        // Translation (combining obj->world and world->view translation):
+        Point2D.Double viewport = CS355.getController().getViewportOrigin();
+        double xTranslate = s.getCenter().x - viewport.x;
+        double yTranslate = s.getCenter().y - viewport.y;
+
+        // Scale
+        double scale = CS355.getController().getCurrentZoom();
+
+        // Final matrix entries:
+        double xScale = scale * xRotate; // x and y scale are the same
+        double yScale = xScale;
+        double xShear = scale * -yRotate;
+        double yShear = scale * yRotate;
+        xTranslate *= scale;
+        yTranslate *= scale;
+
+        return new AffineTransform(
+                xScale, yShear, xShear, yScale, xTranslate, yTranslate
+        );
+*/
+
+        /*
+        // IMPORTANT: Java applies the transformations in the REVERSE ORDER
+        // in which I specify them.
+        */
+        AffineTransform objToView = new AffineTransform();
+
+        // *********************
+        // World->view:
+        // *********************
+
+        // Scale
+        double scale = CS355.getController().getCurrentZoom();
+        objToView.scale(scale, scale);
+
+        // Translate
+        Point2D.Double viewport = CS355.getController().getViewportOrigin();
+        objToView.translate(-viewport.x, -viewport.y);
+
+        // *********************
+        // Object->World:
+        // *********************
+
+        // Translate
+        objToView.translate(s.getCenter().x, s.getCenter().y);
+
+        // Rotate
+        objToView.rotate(s.getRotation());
+
+        return objToView;
+
     }
 
     private void drawLine(Shape s, Graphics2D g2d, boolean selected) {
@@ -261,8 +309,8 @@ public class View implements ViewRefresher, Observer {
     private void drawRotationHandle(int centerX, int centerY, Graphics2D g2d) {
         // Undo the scaling transformation because the handle
         // should be drawn the same size regardless of the zoom level.
-        double scale = CS355.getController().getCurrentZoom();
-        g2d.scale(1/scale, 1/scale);
+        double scale = 1/CS355.getController().getCurrentZoom();
+        g2d.scale(scale, scale);
 
         // Now draw the handle.
         int handleRadius = HANDLE_RADIUS;
