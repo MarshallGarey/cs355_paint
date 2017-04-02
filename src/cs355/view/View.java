@@ -244,7 +244,7 @@ public class View implements ViewRefresher, Observer {
             if (s instanceof Triangle) {
                 g2d.drawPolygon(highlightShape.xPoints, highlightShape.yPoints, 3);
             }
-            else if (s instanceof Circle || s instanceof Ellipse){
+            else if (s instanceof Circle || s instanceof Ellipse) {
                 g2d.drawOval(highlightShape.upperLeftX, highlightShape.upperLeftY,
                         highlightShape.width, highlightShape.height);
             }
@@ -259,8 +259,13 @@ public class View implements ViewRefresher, Observer {
     }
 
     private void drawRotationHandle(int centerX, int centerY, Graphics2D g2d) {
-        // I am arbitrarily deciding the default radius of the rotation handle.
-        int handleRadius = HANDLE_RADIUS; // TODO: multiply by scale for zooming in/out
+        // Undo the scaling transformation because the handle
+        // should be drawn the same size regardless of the zoom level.
+        double scale = CS355.getController().getCurrentZoom();
+        g2d.scale(1/scale, 1/scale);
+
+        // Now draw the handle.
+        int handleRadius = HANDLE_RADIUS;
         int width = handleRadius*2;
         int height = width;
         g2d.drawOval(centerX-handleRadius, centerY-handleRadius, width, height);

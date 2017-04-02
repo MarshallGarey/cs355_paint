@@ -1,5 +1,6 @@
 package cs355.model.drawing;
 
+import cs355.solution.CS355;
 import cs355.view.View;
 
 import java.awt.Color;
@@ -130,6 +131,6 @@ public abstract class Shape {
         // of the handle.
         return (Point2D.Double.distance(selectObjectCoordinates.x,
                 selectObjectCoordinates.y, 0, 0)
-                <= View.HANDLE_RADIUS);
+                <= CS355.getController().getHandleRadius());
     }
 }
