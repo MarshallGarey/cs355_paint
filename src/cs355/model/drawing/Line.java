@@ -1,9 +1,13 @@
 package cs355.model.drawing;
 
 import cs355.GUIFunctions;
+import cs355.solution.CS355;
+import cs355.view.View;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Add your line code here. You can add fields, but you cannot
@@ -71,6 +75,10 @@ public class Line extends Shape {
 }
 		 */
 
+		// Center is in world coordinates, but end is in object coordinates where center is the origin (0,0)
+		// So maybe make a local copy of end in world coordinates...
+		Point2D.Double end = new Point2D.Double(this.end.x + center.x, this.end.y + center.y);
+
 		// Line normal = (-dy,dx)
 		// Unit normal: divide by vector length
 		double length = Point2D.Double.distance(center.x, center.y, end.x, end.y);
@@ -90,18 +98,18 @@ public class Line extends Shape {
 		//
 		//   projectionPoint = start + t(end-start)
 		// distance(pt, projectionPoint) is the distance from the line segment to the point.
-		double t =
-				Math.max(0.0, Math.min(1.0,
-						dotProduct(new Point2D.Double(pt.x - center.x, pt.y - center.y),
-								new Point2D.Double(pt.x - end.x, pt.y - end.y)
-						) / length));
+		double dotProductResult = dotProduct(
+				new Point2D.Double(pt.x - center.x, pt.y - center.y),
+				new Point2D.Double(pt.x - end.x, pt.y - end.y)
+		);
+		double t = Math.max(0.0, Math.min(1.0, dotProductResult / length));
 		Point2D.Double projectionPoint = new Point2D.Double(
 				center.x + t*(dx),
 				center.y + t*(dy)
 		);
 
 		double distance = Point2D.distance(pt.x, pt.y, projectionPoint.x, projectionPoint.y);
-		GUIFunctions.printf("To Line: %f, Dist: %f", distanceToLine, distance);
+		GUIFunctions.printf("To Line: %f, Dist: %f, line length: %f", distanceToLine, distance, length);
 
 		// If this distance is within the line segment endpoints,
 		// count it as falling within the line.
@@ -109,34 +117,48 @@ public class Line extends Shape {
 
 	}
 
+	/**
+	 * @param pt Point to test, in world coordinates.
+	 * @return True if the pt is in either handle, false otherwise.
+	 */
 	@Override
     public boolean pointInHandle(Point2D.Double pt) {
-	    return false;
+		// Make a local copy of the end point in world coordinates.
+		Point2D.Double end = new Point2D.Double(this.end.x + center.x, this.end.y + center.y);
+
+		double distanceStart = Point2D.distance(center.x, center.y, pt.x, pt.y);
+		double distanceEnd = Point2D.distance(end.x, end.y, pt.x, pt.y);
+		double radius = CS355.getController().getHandleRadius();
+		return ((distanceStart < radius) || (distanceEnd < radius));
     }
 
-    /**
-     * TODO: fix this
-     * @param startingPoint In world coordinates
-     */
-	public void move(Point2D.Double startingPoint) {
-		// Figure out which point to move
-		double distanceStart = Point2D.distance(center.x, center.y, startingPoint.x, startingPoint.y);
-		double distanceEnd = Point2D.distance(end.x, end.y, startingPoint.x, startingPoint.y);
+	@Override
+	public void rotate(double newAngle, double startingAngle) {
+		// do nothing
+	}
 
-		// Starting point
+	/**
+	 * This method name is a misnomer. Rather than rotating the line,
+	 * we move one of the endpoints.
+	 *
+	 * @param startingAngle Not used
+	 * @param mouseX Mouse world x position.
+	 * @param mouseY Mouse world y position.
+	 * @return 0 - also not needed.
+	 */
+	@Override
+	public double rotate(double startingAngle, int mouseX, int mouseY) {
+		// Convert line end point to world coordinates and store as a local variable.
+		Point2D.Double end = new Point2D.Double(center.x + this.end.x, center.y + this.end.y);
+
+		// Find distance from the mouse to each endpoint.
+		double distanceStart = Point2D.distance(center.x, center.y, mouseX, mouseY);
+		double distanceEnd = Point2D.distance(end.x, end.y, mouseX, mouseY);
 		if (distanceStart < distanceEnd) {
-			double dx = startingPoint.x - center.x;
-			double dy = startingPoint.y - center.y;
-			center.x += dx;
-			center.y += dy;
+//			center.x += dx;
+//			center.y += dy;
 		}
-		// Ending point
-		else {
-			double dx = startingPoint.x - end.x;
-			double dy = startingPoint.y - end.y;
-			end.x += dx;
-			end.y += dy;
-		}
+		return 0;
 	}
 
 	private double dotProduct(Point2D.Double p1, Point2D.Double p2) {

@@ -402,6 +402,9 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                         startingAngle = Model.getModel().findAngleBetweenMouseAndShape(
                                 (int) mouseWorld.getX(), (int) mouseWorld.getY(), currentShapeIndex);
 
+                        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+                                "Point in handle of " + Model.getModel().getShape(currentShapeIndex));
+
                         // Return without doing the selection test for shapes.
                         return;
                     }
@@ -546,6 +549,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     /**
      * Move the currently selected shape a number of pixels in world coordinates:
      * the difference in the old mouse position and the current mouse position.
+     * TODO: instead of passing dx and dy, pass mouse and starting coordinates and let the individual functions
+     * find dx and dy as needed. This way line doesn't have to be a different signature the the other shapes.
      *
      * @param mouseX Current mouse world x position
      * @param mouseY Current mouse world y position

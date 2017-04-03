@@ -103,7 +103,7 @@ public class View implements ViewRefresher, Observer {
         // xScale xShear xTranslate
         // yShear yScale yTranslate
         // 0      0      1
-/*
+
         // Rotation:
         double xRotate = Math.cos(s.getRotation());
         double yRotate = Math.sin(s.getRotation()); // shearing
@@ -127,12 +127,11 @@ public class View implements ViewRefresher, Observer {
         return new AffineTransform(
                 xScale, yShear, xShear, yScale, xTranslate, yTranslate
         );
-*/
 
         /*
         // IMPORTANT: Java applies the transformations in the REVERSE ORDER
         // in which I specify them.
-        */
+
         AffineTransform objToView = new AffineTransform();
 
         // *********************
@@ -158,7 +157,7 @@ public class View implements ViewRefresher, Observer {
         objToView.rotate(s.getRotation());
 
         return objToView;
-
+        */
     }
 
     private void drawLine(Shape s, Graphics2D g2d, boolean selected) {
@@ -282,10 +281,9 @@ public class View implements ViewRefresher, Observer {
 
         // For a line, just draw handles on each endpoint.
         if (s instanceof Line) {
-            drawRotationHandle((int)highlightShape.endPointA.x,
-                    (int)highlightShape.endPointA.y, g2d);
-            drawRotationHandle((int)highlightShape.endPointB.x,
-                    (int)highlightShape.endPointB.y, g2d);
+            Line l = (Line) s;
+            drawRotationHandle(0,0, g2d);
+            drawRotationHandle((int)l.getEnd().x, (int)l.getEnd().y, g2d);
         }
         else {
             // Outline all other shapes.
@@ -307,13 +305,11 @@ public class View implements ViewRefresher, Observer {
     }
 
     private void drawRotationHandle(int centerX, int centerY, Graphics2D g2d) {
-        // Undo the scaling transformation because the handle
-        // should be drawn the same size regardless of the zoom level.
+        // The handle should be drawn the same size regardless of the zoom level.
         double scale = 1/CS355.getController().getCurrentZoom();
-        g2d.scale(scale, scale);
 
         // Now draw the handle.
-        int handleRadius = HANDLE_RADIUS;
+        int handleRadius = (int)(HANDLE_RADIUS * scale);
         int width = handleRadius*2;
         int height = width;
         g2d.drawOval(centerX-handleRadius, centerY-handleRadius, width, height);

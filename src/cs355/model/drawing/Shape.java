@@ -133,4 +133,28 @@ public abstract class Shape {
                 selectObjectCoordinates.y, 0, 0)
                 <= CS355.getController().getHandleRadius());
     }
+
+	/**
+	 * Rotate a shape.
+	 * Calculate the change in angle from the startingAngle, mouse position,
+	 * and shape position (all in world coordinates).
+	 *
+	 * @param startingAngle Previous angle, subtract from new angle for difference.
+	 * @param mouseX Mouse world x position.
+	 * @param mouseY Mouse world y position.
+	 * @return New angle.
+	 */
+    public double rotate(double startingAngle, int mouseX, int mouseY) {
+		// Calculate the angle between the mouse and the x-axis of the shape.
+		Point2D.Double point = transformWorldToObjectCoordinates(
+				new Point2D.Double(mouseX, mouseY)
+		);
+		double newAngle = Math.atan2(point.y, point.x);
+		rotation += newAngle - startingAngle;
+		return newAngle;
+	}
+
+	public void rotate(double newAngle, double startingAngle) {
+		rotation += newAngle - startingAngle;
+	}
 }

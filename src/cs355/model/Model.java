@@ -1,9 +1,11 @@
 package cs355.model;
 
+import cs355.controller.CS355Controller;
 import cs355.controller.PaintController;
 import cs355.model.drawing.*;
 import cs355.model.drawing.Rectangle;
 import cs355.model.drawing.Shape;
+import cs355.solution.CS355;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -418,8 +420,8 @@ public class Model extends CS355Drawing {
      */
     public int selectShape(int x, int y) {
 
-        // TODO: tolerance should be 4
-        double tolerance = 20.0;
+        // Tolerance is given in the specs. Used for selecting a line. Scale it by the zoom factor.
+        double tolerance = 4.0 / CS355.getController().getCurrentZoom();
 
         // This selected point is currently in world coordinates.
         // It will be translated to object coordinates
@@ -446,15 +448,16 @@ public class Model extends CS355Drawing {
      */
     public void moveShape(int currentShapeIndex, Point2D.Double startingPoint, int dx, int dy) {
         Shape s = shapes.get(currentShapeIndex);
+        s.move(dx, dy);
 
         // Moving lines is different than other shapes.
-        if (s instanceof Line) {
-            Line l = (Line) s;
-            l.move(startingPoint);
-        }
-        else {
-            s.move(dx, dy);
-        }
+//        if (s instanceof Line) {
+//            Line l = (Line) s;
+//            l.move(startingPoint, dx, dy);
+//        }
+//        else {
+//            s.move(dx, dy);
+//        }
 
         // Redraw
         redraw();
@@ -474,14 +477,14 @@ public class Model extends CS355Drawing {
     public double rotateShape(int currentShapeIndex, double startingAngle, int mouseX, int mouseY) {
 
         // Calculate the angle between the mouse and the x-axis of the shape.
-        double newAngle = findAngleBetweenMouseAndShape(mouseX, mouseY, currentShapeIndex);
-
-        // Rotate the selected shape by the difference between this angle and the previous one.
-        Shape s = Model.getModel().getShape(currentShapeIndex);
-        double newRotation = s.getRotation() + newAngle - startingAngle;
-        s.setRotation(newRotation);
+//        double newAngle = findAngleBetweenMouseAndShape(mouseX, mouseY, currentShapeIndex);
+//
+//        // Rotate the selected shape by the difference between this angle and the previous one.
+//        Shape s = getShape(currentShapeIndex);
+//        s.rotate(newAngle, startingAngle);
 
         // Update the view and return
+        double newAngle = getShape(currentShapeIndex).rotate(startingAngle, mouseX, mouseY);
         redraw();
         return newAngle;
     }
