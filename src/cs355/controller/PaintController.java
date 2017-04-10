@@ -4,6 +4,7 @@ import cs355.GUIFunctions;
 import cs355.model.Model;
 import cs355.model.drawing.CS355Drawing;
 import cs355.model.drawing.Shape;
+import cs355.model.scene.CS355Scene;
 import cs355.view.View;
 
 import java.awt.*;
@@ -70,6 +71,12 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // In those functions, check if this value is true; if so, the view
     // doesn't need to be refreshed again.
     private boolean viewRefreshed = false;
+
+    // If true, display the 3D model
+    private boolean model3DIsOn = false;
+
+    // The 3D model
+    private CS355Scene scene = null;
 
     // For debugging
     private boolean ADD_TEST_SHAPES = false;
@@ -210,17 +217,55 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void openScene(File file) {
-
+        scene = new CS355Scene();
+        scene.open(file);
     }
 
     @Override
     public void toggle3DModelDisplay() {
-
+        model3DIsOn = !model3DIsOn;
+        GUIFunctions.refresh();
     }
 
     @Override
     public void keyPressed(Iterator<Integer> iterator) {
-        // TODO: handle key presses here.
+        // Do nothing if 3D model display is turned off.
+        if (!model3DIsOn) {
+            return;
+        }
+
+        // TODO: Handle key presses here.
+        while(iterator.hasNext()) {
+            int key = iterator.next();
+            Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+                    "key pressed: " + key);
+            switch (key) {
+                case 'a': // Move left
+                    break;
+                case 'd': // Move right
+                    break;
+                case 'w': // Move forward
+                    break;
+                case 's': // Move backward
+                    break;
+                case 'q': // Turn left
+                    break;
+                case 'e': // Turn right
+                    break;
+                case 'r': // Move up
+                    break;
+                case 'f': // Move down
+                    break;
+                case 'h': // Return to the original (home) position and orientation
+                    break;
+                case 'o': // Switch to orthographic projection
+                    break;
+                case 'p': // Switch to perspective projection
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     @Override
