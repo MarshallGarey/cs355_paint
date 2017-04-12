@@ -69,7 +69,7 @@ public class Square extends Shape {
     public boolean pointInShape(Point2D.Double pt, double tolerance) {
 
         // Transform to object coordinates, then test the boundaries.
-        Point2D.Double selectObjectCoordinates = transformScreenToObjectCoordinates(pt);
+        Point2D.Double selectObjectCoordinates = transformWorldToObjectCoordinates(pt);
         return  selectObjectCoordinates.y >= -(size / 2) && // Top
                 selectObjectCoordinates.y <= (size / 2) &&  // Bottom
                 selectObjectCoordinates.x >= -(size / 2) && // Left

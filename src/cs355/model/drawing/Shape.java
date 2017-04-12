@@ -1,5 +1,6 @@
 package cs355.model.drawing;
 
+import cs355.solution.CS355;
 import cs355.view.View;
 
 import java.awt.Color;
@@ -12,95 +13,95 @@ import java.awt.geom.Point2D;
  */
 public abstract class Shape {
 
-	// The color of this shape.
-	protected Color color;
+    // The color of this shape.
+    protected Color color;
 
-	// The center of this shape.
-	protected Point2D.Double center;
+    // The center of this shape.
+    protected Point2D.Double center;
 
-	// The rotation of this shape (in radians).
-	protected double rotation;
+    // The rotation of this shape (in radians).
+    protected double rotation;
 
-	/**
-	 * Basic constructor that sets fields.
-	 * It initializes rotation to 0.
-	 * @param color the color for the new shape.
-	 * @param center the center point of the new shape.
-	 */
-	public Shape(Color color, Point2D.Double center) {
-		this.color = color;
-		this.center = center;
-		rotation = 0.0;
-	}
+    /**
+     * Basic constructor that sets fields.
+     * It initializes rotation to 0.
+     * @param color the color for the new shape.
+     * @param center the center point of the new shape.
+     */
+    public Shape(Color color, Point2D.Double center) {
+        this.color = color;
+        this.center = center;
+        rotation = 0.0;
+    }
 
-	/**
-	 * Getter for this shape's color.
-	 * @return the color of this shape.
-	 */
-	public Color getColor() {
-		return color;
-	}
+    /**
+     * Getter for this shape's color.
+     * @return the color of this shape.
+     */
+    public Color getColor() {
+        return color;
+    }
 
-	/**
-	 * Setter for this shape's color
-	 * @param color the new color for the shape.
-	 */
-	public void setColor(Color color) {
-		this.color = color;
-	}
+    /**
+     * Setter for this shape's color
+     * @param color the new color for the shape.
+     */
+    public void setColor(Color color) {
+        this.color = color;
+    }
 
-	/**
-	 * Getter for this shape's center.
-	 * @return this shape's center as a Java point.
-	 */
-	public Point2D.Double getCenter() {
-		return center;
-	}
+    /**
+     * Getter for this shape's center.
+     * @return this shape's center as a Java point.
+     */
+    public Point2D.Double getCenter() {
+        return center;
+    }
 
-	/**
-	 * Setter for this shape's center.
-	 * @param center the new center as a Java point.
-	 */
-	public void setCenter(Point2D.Double center) {
-		this.center = center;
-	}
+    /**
+     * Setter for this shape's center.
+     * @param center the new center as a Java point.
+     */
+    public void setCenter(Point2D.Double center) {
+        this.center = center;
+    }
 
-	/**
-	 * Getter for this shape's rotation.
-	 * @return the rotation as a double.
-	 */
-	public double getRotation() {
-		return rotation;
-	}
+    /**
+     * Getter for this shape's rotation.
+     * @return the rotation as a double.
+     */
+    public double getRotation() {
+        return rotation;
+    }
 
-	/**
-	 * Setter for this shape's rotation.
-	 * @param rotation the new rotation.
-	 */
-	public void setRotation(double rotation) {
-		this.rotation = rotation;
-	}
+    /**
+     * Setter for this shape's rotation.
+     * @param rotation the new rotation.
+     */
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
+    }
 
-	/**
-	 * Find the complement of the shape's color. Used for highlighting purposes.
-	 * @return The complementary color of the shape's color.
-	 */
-	public Color getComplementaryColor() {
-		return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue());
-	}
+    /**
+     * Find the complement of the shape's color. Used for highlighting purposes.
+     * @return The complementary color of the shape's color.
+     */
+    public Color getComplementaryColor() {
+        return new Color(255-color.getRed(), 255-color.getGreen(), 255-color.getBlue());
+    }
 
     /**
      * Transform the selection point pt to object coordinates (inverse translate, inverse rotate).
      * Remember that the transformation operations are performed in reverse order that I call them.
-     * @param screenXY The selection screen xy coordinates.
+     * @param point The selection world xy coordinates.
      * @return The object xy coordinates.
      */
-    public Point2D.Double transformScreenToObjectCoordinates(Point2D.Double screenXY) {
+    public Point2D.Double transformWorldToObjectCoordinates(Point2D.Double point) {
         Point2D.Double selectObjectCoordinates = new Point2D.Double();
         AffineTransform transform = new AffineTransform();
         transform.rotate(-rotation);
         transform.translate(-center.x, -center.y);
-        transform.transform(screenXY, selectObjectCoordinates);
+        transform.transform(point, selectObjectCoordinates);
         return selectObjectCoordinates;
     }
 
@@ -124,12 +125,36 @@ public abstract class Shape {
 
     public boolean pointInHandle(Point2D.Double pt) {
         // Transform to object coordinates, then test the boundaries.
-        Point2D.Double selectObjectCoordinates = transformScreenToObjectCoordinates(pt);
+        Point2D.Double selectObjectCoordinates = transformWorldToObjectCoordinates(pt);
 
         // True if the distance between pt and the center of the handle is less than the radius
         // of the handle.
         return (Point2D.Double.distance(selectObjectCoordinates.x,
                 selectObjectCoordinates.y, 0, 0)
-                <= View.HANDLE_RADIUS);
+                <= CS355.getController().getHandleRadius());
+    }
+
+    /**
+     * Rotate a shape.
+     * Calculate the change in angle from the startingAngle, mouse position,
+     * and shape position (all in world coordinates).
+     *
+     * @param startingAngle Previous angle, subtract from new angle for difference.
+     * @param mouseX Mouse world x position.
+     * @param mouseY Mouse world y position.
+     * @return New angle.
+     */
+    public double rotate(double startingAngle, int mouseX, int mouseY) {
+        // Calculate the angle between the mouse and the x-axis of the shape.
+        Point2D.Double point = transformWorldToObjectCoordinates(
+                new Point2D.Double(mouseX, mouseY)
+        );
+        double newAngle = Math.atan2(point.y, point.x);
+        rotation += newAngle - startingAngle;
+        return newAngle;
+    }
+
+    public void rotate(double newAngle, double startingAngle) {
+        rotation += newAngle - startingAngle;
     }
 }

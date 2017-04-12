@@ -117,7 +117,7 @@ public class Triangle extends Shape {
 	 */
 	@Override
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
-		Point2D.Double selectObjectPoint = transformScreenToObjectCoordinates(pt);
+		Point2D.Double selectObjectPoint = transformWorldToObjectCoordinates(pt);
 
 		/* Do the following tests to find out which side of each line segment
 		the point is on.

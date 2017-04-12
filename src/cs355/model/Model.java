@@ -446,15 +446,7 @@ public class Model extends CS355Drawing {
 
     public void moveShape(int currentShapeIndex, Point2D.Double startingPoint, int dx, int dy) {
         Shape s = shapes.get(currentShapeIndex);
-
-        // Moving lines is different than other shapes.
-        if (s instanceof Line) {
-            Line l = (Line) s;
-            l.move(startingPoint);
-        }
-        else {
-            s.move(dx, dy);
-        }
+        s.move(dx, dy);
 
         // Redraw
         redraw();
@@ -467,6 +459,10 @@ public class Model extends CS355Drawing {
 
         // Rotate the selected shape by the difference between this angle and the previous one.
         Shape s = Model.getModel().getShape(currentShapeIndex);
+
+        // TODO: fix moving line endpoints
+        if (s instanceof Line) return startingAngle;
+
         double newRotation = s.getRotation() + newAngle - startingAngle;
         s.setRotation(newRotation);
 
@@ -477,7 +473,7 @@ public class Model extends CS355Drawing {
 
     public double findAngleBetweenMouseAndShape(int mouseX, int mouseY, int shapeIndex) {
         Shape s = getShape(shapeIndex);
-        Point2D.Double point = s.transformScreenToObjectCoordinates(
+        Point2D.Double point = s.transformWorldToObjectCoordinates(
                 new Point2D.Double(mouseX, mouseY));
         return Math.atan2(point.y, point.x);
     }

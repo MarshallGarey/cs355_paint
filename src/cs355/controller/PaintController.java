@@ -4,6 +4,7 @@ import cs355.GUIFunctions;
 import cs355.model.Model;
 import cs355.model.drawing.*;
 import cs355.model.drawing.Shape;
+import cs355.view.View;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -322,8 +323,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 currentShapeIndex = Model.getModel().selectShape(e.getX(), e.getY());
 
                 // Redraw the screen to update the highlights
-                // TODO: only do this if a currentShapeIndex changed
-                // TODO (if needed): Optimization: only redraw what needs to be redrawn instead of the whole canvas
+                // TODO (optimization): only do this if a currentShapeIndex changed
                 Model.getModel().redraw();
 
                 if (shapeIsSelected()) {
@@ -440,7 +440,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
      * @return True if any shape is selected. False otherwise.
      */
     private boolean shapeIsSelected() {
-        // TODO: Make it so that a shape isn't selected while it's being drawn.
         return (currentShapeIndex >= 0);
     }
 
@@ -458,6 +457,13 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
      */
     private boolean mouseInCanvas(MouseEvent e) {
         return (e.getX() > 0) && (e.getY() > 0);
+    }
+
+    /**
+     * @return Radius of the rotation handle, scaled to the current zoom factor.
+     */
+    public double getHandleRadius() {
+        return View.HANDLE_RADIUS;
     }
 
 }
