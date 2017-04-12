@@ -630,7 +630,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         }
 
         Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
-                "scrollbar positions (x,y) = " + positionX + ", " + positionY);
+                "scrollbar positions (x,y) = " + positionX + ", " + positionY
+                + "; scrollbar size (same for both) = " + scrollbarSize);
 
         // Set positions of scrollbars
         GUIFunctions.setHScrollBarPosit(positionX);
