@@ -1,15 +1,21 @@
 package cs355.view;
 
 import cs355.GUIFunctions;
+import cs355.controller.PaintController;
+import cs355.matrix.Matrix;
 import cs355.model.Model;
 import cs355.model.drawing.*;
 import cs355.model.drawing.Rectangle;
 import cs355.model.drawing.Shape;
+import cs355.model.scene.CS355Scene;
+import cs355.model.scene.Instance;
+import cs355.model.scene.Line3D;
 import cs355.solution.CS355;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -43,11 +49,62 @@ public class View implements ViewRefresher, Observer {
             doHighlight(g2d);
             highlightShape.shape = null;
         }
+        if (CS355.getController().getModel3DIsOn()) {
+            drawScene(g2d);
+        }
     }
 
     @Override
     public void update(Observable o, Object arg) {
         GUIFunctions.refresh();
+    }
+
+    /**
+     * Draw a 3D wireframe scene.
+     * @param g2d Used to draw graphics on the screen.
+     */
+    private void drawScene(Graphics2D g2d) {
+
+        // Build the transformation matrix. Only do this once, since it's the same.
+        Matrix worldToCamera = calculateWorldToCameraTransformation();
+
+        ArrayList<Instance> sceneModels = CS355.getController().getScene().instances();
+        for (Instance model : sceneModels) {
+            for (Line3D line : model.getModel().getLines()) {
+
+                // Build 3D homogeneous world-space coordinates
+                double startPoint[] = new double[4];
+                double endPoint[] = new double[4];
+
+                startPoint[0] = line.start.x;
+                startPoint[1] = line.start.y;
+                startPoint[2] = line.start.z;
+                startPoint[3] = 1;
+
+                endPoint[0] = line.end.x;
+                endPoint[1] = line.end.y;
+                endPoint[2] = line.end.z;
+                endPoint[3] = 1;
+
+                // Multiply matrix by 3D homogeneous world-space coordinates
+                startPoint = worldToCamera.vectorMultiply(startPoint);
+                endPoint = worldToCamera.vectorMultiply(endPoint);
+
+                // Build the clip matrix
+
+                // Multiply camera-space coordinates by clip matrix -> clip coordinates
+
+                // Apply clip test
+
+                // Map clip space coordinate to canonical coordinate (1x1, where center is origin)
+
+                // Map canonical coordinate to screen coordinate (2048x2048, where upper-left is origin)
+
+                // Draw the final 2D coordinates.
+                g2d.drawLine((int)startPoint[0], (int)startPoint[1], (int)endPoint[0], (int)endPoint[1]);
+            }
+        }
+
     }
 
     /**
@@ -87,6 +144,42 @@ public class View implements ViewRefresher, Observer {
         else if (s instanceof Triangle) {
             drawTriangle(s, g2d, selected);
         }
+    }
+
+    private Matrix calculateWorldToCameraTransformation() {
+        CS355Scene scene = CS355.getController().getScene();
+
+        // TODO: Build the world to camera transformation matrix.
+        Matrix rotation = new Matrix(4);
+
+        // Use this as a local pointer for brevity
+        double m0[][] = rotation.getMatrix();
+
+        // Build the rotation matrix.
+        // TODO: Get camera angle. I'm hardcoding it for now.
+        // Camera angle will only change x and z components. y will always point directly up (1).
+        // Camera rotation is in radians. cos(angle) gives x, sin(angle) gives z
+        m0[1][1] = 1; // y is up.
+        m0[0][0] = 1; // x is right.
+        m0[2][2] = 1; // z is out.
+
+        // Build the translation matrix.
+        Matrix translation = new Matrix(4);
+        translation.makeIdentity();
+        double m2[][] = translation.getMatrix();
+        m2[0][3] = -scene.getCameraPosition().x;
+        m2[1][3] = -scene.getCameraPosition().y;
+        m2[2][3] = -scene.getCameraPosition().z;
+
+        // Build the projection matrix
+        Matrix projection = new Matrix(4);
+        projection.makeIdentity();
+        double m3[][] = projection.getMatrix();
+        m3[3][3] = 0;
+        m3[3][2] = 1;
+
+        // Multiply out
+        return rotation.matrixMultiply(translation).matrixMultiply(projection);
     }
 
     private AffineTransform calculateTransformation(Shape s) {

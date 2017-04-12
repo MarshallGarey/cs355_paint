@@ -22,6 +22,11 @@ public class Matrix {
         }
     }
 
+    public void makeIdentity() {
+        matrix = new double[N][N];
+        matrix[0][0] = matrix[1][1] = matrix[2][2] = matrix[3][3] = 1;
+    }
+
     /**
      * Multiply this matrix by another matrix.
      * @param other The matrix to multiply by.
@@ -45,7 +50,7 @@ public class Matrix {
     /**
      * Multiply this matrix by a vector.
      * @param vector The vector (must be an N-element double array) to multiply by.
-     * @return An N-element integer array, or null if param vector is illegal.
+     * @return An N-element double array, or null if param vector is illegal.
      */
     public double[] vectorMultiply(double vector[]) {
         if (vector.length != N) {
