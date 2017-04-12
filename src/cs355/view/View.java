@@ -68,6 +68,9 @@ public class View implements ViewRefresher, Observer {
         // Build the transformation matrix. Only do this once, since it's the same.
         Matrix worldToCamera = calculateWorldToCameraTransformation();
 
+        // Build the clip matrix
+        Matrix clip = calculateClipMatrix();
+
         ArrayList<Instance> sceneModels = CS355.getController().getScene().instances();
         for (Instance model : sceneModels) {
             for (Line3D line : model.getModel().getLines()) {
@@ -90,18 +93,20 @@ public class View implements ViewRefresher, Observer {
                 startPoint = worldToCamera.vectorMultiply(startPoint);
                 endPoint = worldToCamera.vectorMultiply(endPoint);
 
-                // Build the clip matrix
-
                 // Multiply camera-space coordinates by clip matrix -> clip coordinates
+                startPoint = clip.vectorMultiply(startPoint);
+                endPoint = clip.vectorMultiply(endPoint);
 
                 // Apply clip test
+                if (isInViewFrustum()) {
 
-                // Map clip space coordinate to canonical coordinate (1x1, where center is origin)
+                    // Map clip space coordinate to canonical coordinate (1x1, where center is origin)
 
-                // Map canonical coordinate to screen coordinate (2048x2048, where upper-left is origin)
+                    // Map canonical coordinate to screen coordinate (2048x2048, where upper-left is origin)
 
-                // Draw the final 2D coordinates.
-                g2d.drawLine((int)startPoint[0], (int)startPoint[1], (int)endPoint[0], (int)endPoint[1]);
+                    // Draw the final 2D coordinates.
+                    g2d.drawLine((int) startPoint[0], (int) startPoint[1], (int) endPoint[0], (int) endPoint[1]);
+                }
             }
         }
 
@@ -180,6 +185,21 @@ public class View implements ViewRefresher, Observer {
 
         // Multiply out
         return rotation.matrixMultiply(translation).matrixMultiply(projection);
+    }
+
+    private Matrix calculateClipMatrix() {
+        Matrix clip = new Matrix(4);
+        double nearPlane = 1;
+        double farPlane = 1000;
+        double zoomX = 1;
+        double zoomY = 1;
+        double matrixData[][] = clip.getMatrix();
+        matrixData[0][0] = zoomX;
+        matrixData[1][1] = zoomY;
+        matrixData[2][2] = (farPlane+nearPlane)/(farPlane-nearPlane);
+        matrixData[2][3] = (-2*nearPlane*farPlane)/(farPlane-nearPlane);
+        matrixData[3][2] = 1;
+        return clip;
     }
 
     private AffineTransform calculateTransformation(Shape s) {
