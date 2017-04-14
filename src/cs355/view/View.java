@@ -1,7 +1,6 @@
 package cs355.view;
 
 import cs355.GUIFunctions;
-import cs355.controller.PaintController;
 import cs355.matrix.Matrix;
 import cs355.model.Model;
 import cs355.model.drawing.*;
@@ -27,6 +26,8 @@ public class View implements ViewRefresher, Observer {
 
     private HighlightShape highlightShape;
     public static final int HANDLE_RADIUS = 4;
+    private final int NEAR_PLANE = 1;
+    private final int FAR_PLANE = 100000000;
 
     /**
      * Default constructor
@@ -98,18 +99,142 @@ public class View implements ViewRefresher, Observer {
                 endPoint = clip.vectorMultiply(endPoint);
 
                 // Apply clip test
-                if (isInViewFrustum()) {
+                if (isInViewFrustum(startPoint, endPoint)) {
 
-                    // Map clip space coordinate to canonical coordinate (1x1, where center is origin)
+                    // Map clip space coordinate to canonical coordinate ([-1,1], where center is origin)
+                    startPoint[0] /= startPoint[3];
+                    startPoint[1] /= startPoint[3];
+                    startPoint[2] /= startPoint[3];
+                    startPoint[3] = 1;
+                    endPoint[0] /= endPoint[3];
+                    endPoint[1] /= endPoint[3];
+                    endPoint[2] /= endPoint[3];
+                    endPoint[3] = 1;
 
-                    // Map canonical coordinate to screen coordinate (2048x2048, where upper-left is origin)
+                    // Map canonical coordinate to screen coordinate ([0,2047], where upper-left is origin)
+                    double screenStart[] = canonicalToScreen(startPoint);
+                    double screenEnd[] = canonicalToScreen(endPoint);
 
                     // Draw the final 2D coordinates.
-                    g2d.drawLine((int) startPoint[0], (int) startPoint[1], (int) endPoint[0], (int) endPoint[1]);
+                    g2d.drawLine((int) screenStart[0], (int) screenStart[1], (int) screenEnd[0], (int) screenEnd[1]);
                 }
             }
         }
+    }
 
+    /**
+     *
+     * @param point A 4-element vector of canonical screen coordinates.
+     * @return A 3-element vector of screen coordinates.
+     */
+    private double[] canonicalToScreen(double[] point) {
+        Matrix transformation = new Matrix(3);
+        double data[][] = transformation.getMatrix();
+        data[0][0] = data[0][2] = data[1][2] = 1024;
+        data[1][1] = -1024;
+        data[2][2] = 1;
+
+        // Drop z (the 3rd element) of the point.
+        double p[] = new double[3];
+        p[0] = point[0];
+        p[1] = point[1];
+        p[2] = point[3];
+
+        return transformation.vectorMultiply(p);
+    }
+
+    /**
+     * Reject a line if both points fail the same view frustum test
+     * OR if either endpoint fails the near-plane test.
+     *
+     * @param startPoint One endpoint
+     * @param endPoint Other endpoint
+     * @return False if both endpoints fail the same view frustum test OR
+     *         if either endpoint fails the near-plane test.
+     */
+    private boolean isInViewFrustum(double[] startPoint, double[] endPoint) {
+        // The coordinate w is the 4th element of startPoint and endPoint.
+        // Use this for clipping tests.
+        double wStart = startPoint[3];
+        double wEnd = endPoint[3];
+        double xStart = startPoint[0];
+        double xEnd = startPoint[0];
+        double yStart = startPoint[1];
+        double yEnd = startPoint[1];
+        double zStart = startPoint[2];
+        double zEnd = startPoint[2];
+
+        // First test the near plane.
+        if (zStart < -wStart || zEnd < -wEnd) {
+            return false;
+        }
+
+        // Far plane
+        if (zStart > wStart && zEnd > wEnd) {
+            return false;
+        }
+
+        // Left and right sides
+        if ((xStart < -wStart && xEnd < -wEnd) || (xStart > wStart && xEnd > wEnd)) {
+            return false;
+        }
+
+        // Top and bottom sides
+        // TODO: I'm not certain about the sign here
+        if ((yStart < -wStart && yEnd < -wEnd) || (yStart > wStart && yEnd > wEnd)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private Matrix calculateWorldToCameraTransformation() {
+        CS355Scene scene = CS355.getController().getScene();
+
+        // TODO: Build the world to camera transformation matrix.
+        Matrix rotation = new Matrix(4);
+
+        // Use this as a local pointer for brevity
+        double m0[][] = rotation.getMatrix();
+
+        // Build the rotation matrix.
+        // TODO: Get camera angle. I'm hardcoding it for now.
+        // Camera angle will only change x and z components. y will always point directly up (1).
+        // Camera rotation is in radians. cos(angle) gives x, sin(angle) gives z
+        m0[1][1] = 1; // y is up.
+        m0[0][0] = 1; // x is right.
+        m0[2][2] = 1; // z is out.
+
+        // Build the translation matrix.
+        Matrix translation = new Matrix(4);
+        translation.makeIdentity();
+        double m2[][] = translation.getMatrix();
+        m2[0][3] = -scene.getCameraPosition().x;
+        m2[1][3] = -scene.getCameraPosition().y;
+        m2[2][3] = -scene.getCameraPosition().z;
+
+        // Build the projection matrix
+//        Matrix projection = new Matrix(4);
+//        projection.makeIdentity();
+//        double m3[][] = projection.getMatrix();
+//        m3[3][3] = 0;
+//        m3[3][2] = 1;
+
+        // Multiply out
+        return rotation.matrixMultiply(translation);//.matrixMultiply(projection);
+    }
+
+    private Matrix calculateClipMatrix() {
+        Matrix clip = new Matrix(4);
+        double zoomX = 1;
+        double zoomY = 1;
+        double matrixData[][] = clip.getMatrix();
+        matrixData[0][0] = zoomX;
+        matrixData[1][1] = zoomY;
+        matrixData[2][2] = (FAR_PLANE+NEAR_PLANE)/(FAR_PLANE-NEAR_PLANE);
+        matrixData[2][3] = (-2*NEAR_PLANE*FAR_PLANE)/(FAR_PLANE-NEAR_PLANE);
+        matrixData[3][2] = 1;
+        return clip;
     }
 
     /**
@@ -149,57 +274,6 @@ public class View implements ViewRefresher, Observer {
         else if (s instanceof Triangle) {
             drawTriangle(s, g2d, selected);
         }
-    }
-
-    private Matrix calculateWorldToCameraTransformation() {
-        CS355Scene scene = CS355.getController().getScene();
-
-        // TODO: Build the world to camera transformation matrix.
-        Matrix rotation = new Matrix(4);
-
-        // Use this as a local pointer for brevity
-        double m0[][] = rotation.getMatrix();
-
-        // Build the rotation matrix.
-        // TODO: Get camera angle. I'm hardcoding it for now.
-        // Camera angle will only change x and z components. y will always point directly up (1).
-        // Camera rotation is in radians. cos(angle) gives x, sin(angle) gives z
-        m0[1][1] = 1; // y is up.
-        m0[0][0] = 1; // x is right.
-        m0[2][2] = 1; // z is out.
-
-        // Build the translation matrix.
-        Matrix translation = new Matrix(4);
-        translation.makeIdentity();
-        double m2[][] = translation.getMatrix();
-        m2[0][3] = -scene.getCameraPosition().x;
-        m2[1][3] = -scene.getCameraPosition().y;
-        m2[2][3] = -scene.getCameraPosition().z;
-
-        // Build the projection matrix
-        Matrix projection = new Matrix(4);
-        projection.makeIdentity();
-        double m3[][] = projection.getMatrix();
-        m3[3][3] = 0;
-        m3[3][2] = 1;
-
-        // Multiply out
-        return rotation.matrixMultiply(translation).matrixMultiply(projection);
-    }
-
-    private Matrix calculateClipMatrix() {
-        Matrix clip = new Matrix(4);
-        double nearPlane = 1;
-        double farPlane = 1000;
-        double zoomX = 1;
-        double zoomY = 1;
-        double matrixData[][] = clip.getMatrix();
-        matrixData[0][0] = zoomX;
-        matrixData[1][1] = zoomY;
-        matrixData[2][2] = (farPlane+nearPlane)/(farPlane-nearPlane);
-        matrixData[2][3] = (-2*nearPlane*farPlane)/(farPlane-nearPlane);
-        matrixData[3][2] = 1;
-        return clip;
     }
 
     private AffineTransform calculateTransformation(Shape s) {

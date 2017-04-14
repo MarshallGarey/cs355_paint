@@ -226,14 +226,19 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         scene.open(file);
 
         // Initialize virtual camera
-        originalCameraPosition = scene.getCameraPosition();
+        originalCameraPosition = new Point3D(0,0,0);//new Point3D(1024, 1024, 0);
+        scene.setCameraPosition(originalCameraPosition);
         originalCameraRotation = scene.getCameraRotation();
+
+        // Draw the scene
+        model3DIsOn = true; // on as soon as the scene is opened.
+        GUIFunctions.refresh();
     }
 
     @Override
     public void toggle3DModelDisplay() {
         // Keep false if scene hasn't been opened.
-        if (scene != null)
+        if (scene == null)
             return;
         model3DIsOn = !model3DIsOn;
         GUIFunctions.refresh();
@@ -252,66 +257,67 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
             Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
                     "key pressed: " + key);
             switch (key) {
-                case 'a': // Move left
+                case 'A': // Move left
                     newPos = new Point3D(
                             scene.getCameraPosition().x - 5,
                             scene.getCameraPosition().y,
                             scene.getCameraPosition().z);
                     scene.setCameraPosition(newPos);
                     break;
-                case 'd': // Move right
+                case 'D': // Move right
                     newPos = new Point3D(
                             scene.getCameraPosition().x + 5,
                             scene.getCameraPosition().y,
                             scene.getCameraPosition().z);
                     scene.setCameraPosition(newPos);
                     break;
-                case 'w': // Move forward
+                case 'W': // Move forward
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
                             scene.getCameraPosition().y,
                             scene.getCameraPosition().z + 5);
                     scene.setCameraPosition(newPos);
                     break;
-                case 's': // Move backward
+                case 'S': // Move backward
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
                             scene.getCameraPosition().y,
                             scene.getCameraPosition().z - 5);
                     scene.setCameraPosition(newPos);
                     break;
-                case 'q': // Turn left
+                case 'Q': // Turn left
                     scene.setCameraRotation(scene.getCameraRotation() - 0.2);
                     break;
-                case 'e': // Turn right
+                case 'E': // Turn right
                     scene.setCameraRotation(scene.getCameraRotation() + 0.2);
                     break;
-                case 'r': // Move up
+                case 'R': // Move up
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
                             scene.getCameraPosition().y + 5,
                             scene.getCameraPosition().z);
                     scene.setCameraPosition(newPos);
                     break;
-                case 'f': // Move down
+                case 'F': // Move down
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
                             scene.getCameraPosition().y - 5,
                             scene.getCameraPosition().z);
                     scene.setCameraPosition(newPos);
                     break;
-                case 'h': // Return to the original (home) position and orientation
+                case 'H': // Return to the original (home) position and orientation
                     scene.setCameraPosition(originalCameraPosition);
                     scene.setCameraRotation(originalCameraRotation);
                     break;
-                case 'o': // Switch to orthographic projection - ignore for lab 5
+                case 'O': // Switch to orthographic projection - ignore for lab 5
                     break;
-                case 'p': // Switch to perspective projection - ignore for lab 5
+                case 'P': // Switch to perspective projection - ignore for lab 5
                     break;
                 default:
                     break;
             }
         }
+        GUIFunctions.refresh();
     }
 
     @Override
@@ -638,10 +644,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     }
 
     /**
-     * Move the currently selected shape a number of pixels in world coordinates:
-     * the difference in the old mouse position and the current mouse position.
-     * TODO: instead of passing dx and dy, pass mouse and starting coordinates and let the individual functions
-     * find dx and dy as needed. This way line doesn't have to be a different signature the the other shapes.
+     * Ask the model to move the current shape.
      *
      * @param mouseX Current mouse world x position
      * @param mouseY Current mouse world y position
@@ -664,7 +667,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
      * @return True if any shape is selected. False otherwise.
      */
     private boolean shapeIsSelected() {
-        // TODO: Make it so that a shape isn't selected while it's being drawn.
         return (currentShapeIndex >= 0);
     }
 

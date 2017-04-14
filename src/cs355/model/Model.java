@@ -465,7 +465,7 @@ public class Model extends CS355Drawing {
 
     /**
      * Rotate a shape.
-     * Calculate the change in angle from the startingAngle, mouse position,
+     * The change in angle is calculated from the startingAngle, mouse position,
      * and shape position (all in world coordinates).
      *
      * @param currentShapeIndex Index to the shapes list of the shape to be rotated.
@@ -475,15 +475,7 @@ public class Model extends CS355Drawing {
      * @return New angle.
      */
     public double rotateShape(int currentShapeIndex, double startingAngle, int mouseX, int mouseY) {
-
-        // Calculate the angle between the mouse and the x-axis of the shape.
-//        double newAngle = findAngleBetweenMouseAndShape(mouseX, mouseY, currentShapeIndex);
-//
-//        // Rotate the selected shape by the difference between this angle and the previous one.
-//        Shape s = getShape(currentShapeIndex);
-//        s.rotate(newAngle, startingAngle);
-
-        // Update the view and return
+        // Rotate, update the view and return the new angle.
         double newAngle = getShape(currentShapeIndex).rotate(startingAngle, mouseX, mouseY);
         redraw();
         return newAngle;
