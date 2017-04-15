@@ -82,6 +82,12 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // Virtual camera
     private Point3D originalCameraPosition = null;
     private double originalCameraRotation;
+    private final double CAMERA_START_X = 41;
+    private final double CAMERA_START_Y = -39;
+    private final double CAMERA_START_Z = -57;
+
+    // The background image
+    private boolean backgroundImageIsOn = false;
 
     // For debugging
     private boolean ADD_TEST_SHAPES = false;
@@ -101,6 +107,9 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         if (ADD_TEST_SHAPES) {
             makeTestShapes();
         }
+
+        originalCameraPosition = new Point3D(CAMERA_START_X, CAMERA_START_Y, CAMERA_START_Z);
+        originalCameraRotation = 0;
     }
 
     private void makeTestShapes() {
@@ -226,9 +235,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         scene.open(file);
 
         // Initialize virtual camera
-        originalCameraPosition = new Point3D(0,0,0);//new Point3D(1024, 1024, 0);
         scene.setCameraPosition(originalCameraPosition);
-        originalCameraRotation = scene.getCameraRotation();
+        scene.setCameraRotation(originalCameraRotation);
 
         // Draw the scene
         model3DIsOn = true; // on as soon as the scene is opened.
@@ -252,21 +260,21 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         }
         Point3D newPos;
         // TODO: Handle key presses here.
-        while(iterator.hasNext()) {
+//        while(iterator.hasNext()) {
             int key = iterator.next();
-            Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
-                    "key pressed: " + key);
+//            Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+//                    "key pressed: " + key);
             switch (key) {
                 case 'A': // Move left
                     newPos = new Point3D(
-                            scene.getCameraPosition().x - 5,
+                            scene.getCameraPosition().x - 1,
                             scene.getCameraPosition().y,
                             scene.getCameraPosition().z);
                     scene.setCameraPosition(newPos);
                     break;
                 case 'D': // Move right
                     newPos = new Point3D(
-                            scene.getCameraPosition().x + 5,
+                            scene.getCameraPosition().x + 1,
                             scene.getCameraPosition().y,
                             scene.getCameraPosition().z);
                     scene.setCameraPosition(newPos);
@@ -275,14 +283,14 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
                             scene.getCameraPosition().y,
-                            scene.getCameraPosition().z + 5);
+                            scene.getCameraPosition().z + 1);
                     scene.setCameraPosition(newPos);
                     break;
                 case 'S': // Move backward
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
                             scene.getCameraPosition().y,
-                            scene.getCameraPosition().z - 5);
+                            scene.getCameraPosition().z - 1);
                     scene.setCameraPosition(newPos);
                     break;
                 case 'Q': // Turn left
@@ -294,14 +302,14 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 case 'R': // Move up
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
-                            scene.getCameraPosition().y + 5,
+                            scene.getCameraPosition().y + 1,
                             scene.getCameraPosition().z);
                     scene.setCameraPosition(newPos);
                     break;
                 case 'F': // Move down
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
-                            scene.getCameraPosition().y - 5,
+                            scene.getCameraPosition().y - 1,
                             scene.getCameraPosition().z);
                     scene.setCameraPosition(newPos);
                     break;
@@ -316,7 +324,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                 default:
                     break;
             }
-        }
+//        }
         GUIFunctions.refresh();
     }
 
