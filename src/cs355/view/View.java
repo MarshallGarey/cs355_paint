@@ -17,6 +17,8 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by Marshall on 1/24/2017.
@@ -27,7 +29,7 @@ public class View implements ViewRefresher, Observer {
     private HighlightShape highlightShape;
     public static final int HANDLE_RADIUS = 4;
     private final int NEAR_PLANE = 1;
-    private final int FAR_PLANE = 100000000;
+    private final int FAR_PLANE = 80;
 
     /**
      * Default constructor
@@ -123,14 +125,15 @@ public class View implements ViewRefresher, Observer {
     }
 
     /**
-     *
+     * Convert canonical coordinates (range [-1,1]) to screen coordinates (range [0,screenSize-1]
      * @param point A 4-element vector of canonical screen coordinates.
      * @return A 3-element vector of screen coordinates.
      */
     private double[] canonicalToScreen(double[] point) {
         Matrix transformation = new Matrix(3);
         double data[][] = transformation.getMatrix();
-        data[0][0] = data[0][2] = data[1][2] = 1024;
+        // TODO: rather than hardcoding half the screen width, get it from the controller (use the zoom level)
+        data[0][0] = data[0][2] = 1024;
         data[1][1] = -1024;
         data[2][2] = 1;
 
@@ -139,7 +142,6 @@ public class View implements ViewRefresher, Observer {
         p[0] = point[0];
         p[1] = point[1];
         p[2] = point[3];
-
         return transformation.vectorMultiply(p);
     }
 
@@ -180,7 +182,6 @@ public class View implements ViewRefresher, Observer {
         }
 
         // Top and bottom sides
-        // TODO: I'm not certain about the sign here
         if ((yStart < -wStart && yEnd < -wEnd) || (yStart > wStart && yEnd > wEnd)) {
             return false;
         }
@@ -191,19 +192,18 @@ public class View implements ViewRefresher, Observer {
     private Matrix calculateWorldToCameraTransformation() {
         CS355Scene scene = CS355.getController().getScene();
 
-        // TODO: Build the world to camera transformation matrix.
-        Matrix rotation = new Matrix(4);
-
-        // Use this as a local pointer for brevity
-        double m0[][] = rotation.getMatrix();
+        // Build the world to camera transformation matrix: translation and rotation:
 
         // Build the rotation matrix.
         // TODO: Get camera angle. I'm hardcoding it for now.
         // Camera angle will only change x and z components. y will always point directly up (1).
         // Camera rotation is in radians. cos(angle) gives x, sin(angle) gives z
+        Matrix rotation = new Matrix(4);
+        double m0[][] = rotation.getMatrix();
         m0[1][1] = 1; // y is up.
         m0[0][0] = 1; // x is right.
-        m0[2][2] = 1; // z is out.
+        m0[2][2] = -1; // z is out (shell has inverted z direction)
+        m0[3][3] = 1;
 
         // Build the translation matrix.
         Matrix translation = new Matrix(4);
@@ -213,15 +213,8 @@ public class View implements ViewRefresher, Observer {
         m2[1][3] = -scene.getCameraPosition().y;
         m2[2][3] = -scene.getCameraPosition().z;
 
-        // Build the projection matrix
-//        Matrix projection = new Matrix(4);
-//        projection.makeIdentity();
-//        double m3[][] = projection.getMatrix();
-//        m3[3][3] = 0;
-//        m3[3][2] = 1;
-
         // Multiply out
-        return rotation.matrixMultiply(translation);//.matrixMultiply(projection);
+        return rotation.matrixMultiply(translation);
     }
 
     private Matrix calculateClipMatrix() {
