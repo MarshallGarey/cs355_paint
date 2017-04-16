@@ -42,6 +42,12 @@ public class View implements ViewRefresher, Observer {
     // Shell refreshes the drawing area
     @Override
     public void refreshView(Graphics2D g2d) {
+        // First the background image
+        if (CS355.getController().getBackgroundImageIsOn()) {
+            drawBackgroundImage(g2d);
+        }
+
+        // Then the model
         for (cs355.model.drawing.Shape s : Model.getModel().getShapes()) {
             drawShape(s, g2d);
         }
@@ -50,6 +56,8 @@ public class View implements ViewRefresher, Observer {
             doHighlight(g2d);
             highlightShape.shape = null;
         }
+
+        // Then the 3D scene
         if (CS355.getController().getModel3DIsOn()) {
             drawScene(g2d);
         }
@@ -58,6 +66,15 @@ public class View implements ViewRefresher, Observer {
     @Override
     public void update(Observable o, Object arg) {
         GUIFunctions.refresh();
+    }
+
+    /**
+     * Draw an image
+     * @param g2d Used to draw graphics on the screen.
+     */
+    private void drawBackgroundImage(Graphics2D g2d) {
+        g2d.drawImage(CS355.getController().getImage().getImage(), null, 0, 0);
+        // TODO: use affine transform (for scaling/zooming)
     }
 
     /**

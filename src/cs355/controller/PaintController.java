@@ -4,6 +4,7 @@ import cs355.GUIFunctions;
 import cs355.model.Model;
 import cs355.model.drawing.CS355Drawing;
 import cs355.model.drawing.Shape;
+import cs355.model.drawing.Image;
 import cs355.model.scene.CS355Scene;
 import cs355.model.scene.Point3D;
 import cs355.view.View;
@@ -82,6 +83,10 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     // Virtual camera
     private Point3D originalCameraPosition = null;
     private double originalCameraRotation;
+
+    // Image
+    private Image image = null;
+    private boolean backgroundImageIsOn = false;
 
     // For debugging
     private boolean ADD_TEST_SHAPES = false;
@@ -322,17 +327,24 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void openImage(File file) {
-
+        image = new Image();
+        image.open(file);
+        backgroundImageIsOn = true;
+        GUIFunctions.refresh();
     }
 
     @Override
     public void saveImage(File file) {
-
+        if (image != null) {
+            image.save(file);
+        }
     }
 
     @Override
     public void toggleBackgroundDisplay() {
-
+        if (image != null) {
+            backgroundImageIsOn = !backgroundImageIsOn;
+        }
     }
 
     @Override
@@ -755,5 +767,13 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     public boolean getModel3DIsOn() {
         return model3DIsOn;
+    }
+
+    public boolean getBackgroundImageIsOn() {
+        return backgroundImageIsOn;
+    }
+
+    public Image getImage() {
+        return image;
     }
 }
