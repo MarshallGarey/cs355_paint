@@ -90,9 +90,11 @@ public class Image extends CS355Image {
         }
     }
 
+    // TODO: contrast isn't working correctly
     // Range [-100,100], where 100 is maximum contrast (8x) and -100 is zero contrast
+    // and 0 is no change.
     // With input brightness in the range [0,1] and amount as the contrast parameter:
-    //   outputBrightness=(amount+100)^4/100*(inputBrightness-0.5) + 0.5
+    //   outputBrightness=((amount+100)/100)^4*(inputBrightness-0.5) + 0.5
     @Override
     public void contrast(int amount) {
         // Preallocate the arrays.
@@ -100,6 +102,10 @@ public class Image extends CS355Image {
         float[] hsb = new float[3];
         int width = getWidth();
         int height = getHeight();
+
+        // Amount must be in the range [-100,100]
+        if (amount < -100) amount = -100;
+        else if (amount > 100) amount = 100;
 
         // For each pixel:
         for (int x = 0; x < width; x++) {
@@ -109,10 +115,10 @@ public class Image extends CS355Image {
                 // Convert to HSB.
                 Color.RGBtoHSB(rgb[0], rgb[1], rgb[2], hsb);
                 // Contrast and clip brightness to the range [0,1]
-                float newB = (float)(Math.pow((double)amount+100,4)*0.01*(hsb[2]-0.5)+0.5);
-                hsb[2] += newB;
+                float newB = (float)(Math.pow(((double)amount+100)/100,4)*(hsb[2]-0.5)+0.5);
+                hsb[2] = newB;
                 if (hsb[2] > 1) hsb[2] = 1;
-                if (hsb[2] < 0) hsb[2] = 0;
+                else if (hsb[2] < 0) hsb[2] = 0;
                 // Convert back to RGB.
                 Color c = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
                 rgb[0] = c.getRed();
@@ -145,7 +151,7 @@ public class Image extends CS355Image {
                 float percent = (float)amount*(float)0.01;
                 hsb[2] += percent;
                 if (hsb[2] > 1) hsb[2] = 1;
-                if (hsb[2] < 0) hsb[2] = 0;
+                else if (hsb[2] < 0) hsb[2] = 0;
                 // Convert back to RGB.
                 Color c = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
                 rgb[0] = c.getRed();
