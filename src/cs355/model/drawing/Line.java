@@ -109,7 +109,6 @@ public class Line extends Shape {
 		);
 
 		double distance = Point2D.distance(pt.x, pt.y, projectionPoint.x, projectionPoint.y);
-		GUIFunctions.printf("To Line: %f, Dist: %f, line length: %f", distanceToLine, distance, length);
 
 		// If this distance is within the line segment endpoints,
 		// count it as falling within the line.
@@ -132,11 +131,6 @@ public class Line extends Shape {
 		return ((distanceStart < radius) || (distanceEnd < radius));
     }
 
-	@Override
-	public void rotate(double newAngle, double startingAngle) {
-		// do nothing
-	}
-
 	/**
 	 * This method name is a misnomer. Rather than rotating the line,
 	 * we move one of the endpoints.
@@ -155,8 +149,12 @@ public class Line extends Shape {
 		double distanceStart = Point2D.distance(center.x, center.y, mouseX, mouseY);
 		double distanceEnd = Point2D.distance(end.x, end.y, mouseX, mouseY);
 		if (distanceStart < distanceEnd) {
-//			center.x += dx;
-//			center.y += dy;
+			center.x = mouseX;
+			center.y = mouseY;
+		}
+		else {
+			this.end.x = center.x - mouseX;
+			this.end.y = center.y - mouseY;
 		}
 		return 0;
 	}

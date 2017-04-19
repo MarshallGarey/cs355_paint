@@ -123,7 +123,11 @@ public abstract class Shape {
         center.y += dy;
     }
 
-    public boolean pointInHandle(Point2D.Double pt) {
+	/**
+	 * @param pt The point to test.
+	 * @return True if the point is inside the shape's handle.
+	 */
+	public boolean pointInHandle(Point2D.Double pt) {
         // Transform to object coordinates, then test the boundaries.
         Point2D.Double selectObjectCoordinates = transformWorldToObjectCoordinates(pt);
 
@@ -152,9 +156,5 @@ public abstract class Shape {
 		double newAngle = Math.atan2(point.y, point.x);
 		rotation += newAngle - startingAngle;
 		return newAngle;
-	}
-
-	public void rotate(double newAngle, double startingAngle) {
-		rotation += newAngle - startingAngle;
 	}
 }

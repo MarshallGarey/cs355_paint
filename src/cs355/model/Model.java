@@ -442,24 +442,12 @@ public class Model extends CS355Drawing {
      * Move a shape a dx and dy pixels (in world coordinates).
      *
      * @param currentShapeIndex Index to the shapes list to the shape to be moved.
-     * @param startingPoint TODO
      * @param dx Change in x in world coordinates
      * @param dy Change in y in world coordinates
      */
-    public void moveShape(int currentShapeIndex, Point2D.Double startingPoint, int dx, int dy) {
+    public void moveShape(int currentShapeIndex, int dx, int dy) {
         Shape s = shapes.get(currentShapeIndex);
         s.move(dx, dy);
-
-        // Moving lines is different than other shapes.
-//        if (s instanceof Line) {
-//            Line l = (Line) s;
-//            l.move(startingPoint, dx, dy);
-//        }
-//        else {
-//            s.move(dx, dy);
-//        }
-
-        // Redraw
         redraw();
     }
 

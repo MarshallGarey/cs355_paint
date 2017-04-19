@@ -3,6 +3,7 @@ package cs355.controller;
 import cs355.GUIFunctions;
 import cs355.model.Model;
 import cs355.model.drawing.CS355Drawing;
+import cs355.model.drawing.Line;
 import cs355.model.drawing.Shape;
 import cs355.view.View;
 
@@ -82,9 +83,11 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     public void init() {
         // Initialize the scroll bars
+        GUIFunctions.setHScrollBarMin(0);
+        GUIFunctions.setVScrollBarMin(0);
+        GUIFunctions.setHScrollBarMax(CANVAS_SIZE);
+        GUIFunctions.setVScrollBarMax(CANVAS_SIZE);
         setScrollbars(currentZoom, currentZoom);
-        GUIFunctions.setHScrollBarMax(CANVAS_MAX);
-        GUIFunctions.setVScrollBarMax(CANVAS_MAX);
 
         if (ADD_TEST_SHAPES) {
             makeTestShapes();
@@ -198,6 +201,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         viewportOrigin.x = value;
         if (!viewRefreshed)
             GUIFunctions.refresh();
+        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+                "hScrollbar = " + value);
     }
 
     @Override
@@ -206,6 +211,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         viewportOrigin.y = value;
         if (!viewRefreshed)
             GUIFunctions.refresh();
+//        Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
+//                "vScrollbar = " + value);
     }
 
     @Override
@@ -535,14 +542,24 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
      * @param mouseY Current mouse world y position
      */
     private void rotateShape(int mouseX, int mouseY) {
+        int x = mouseX, y = mouseY;
+
+        // For lines, use the previous x and y and update startingPoint (the previous mouse position).
+        if (Model.getModel().getShape(currentShapeIndex) instanceof Line) {
+            x = (int)(startingPoint.x);
+            y = (int)(startingPoint.y);
+            startingPoint.x = mouseX;
+            startingPoint.y = mouseY;
+        }
+
         // Ask the model to rotate the shape.
         // It will return the angle between the current mouse point and the shape's x axis.
         // Update the starting angle so the next mouse drag is compared to the newest mouse point.
         startingAngle = Model.getModel().rotateShape(
                 currentShapeIndex,
                 startingAngle,
-                mouseX,
-                mouseY
+                x,
+                y
         );
     }
 
@@ -558,7 +575,6 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     private void moveShape(int mouseX, int mouseY) {
         // Move the selected shape.
         Model.getModel().moveShape(currentShapeIndex,
-                startingPoint,
                 mouseX - (int) startingPoint.x,
                 mouseY - (int) startingPoint.y);
 
@@ -597,13 +613,14 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
      * Change the scrollbar size and position to match the zoom level
      */
     private void setScrollbars(double newZoom, double oldZoom) {
+        GUIFunctions.setHScrollBarMin(0);
+        GUIFunctions.setVScrollBarMin(0);
         // Set scrollbar size
         int scrollbarSize = (int) (VIEW_SIZE / newZoom);
         GUIFunctions.setHScrollBarKnob(scrollbarSize);
         GUIFunctions.setVScrollBarKnob(scrollbarSize);
 
-        // Scrollbar position is:
-        //   Center of screen - scrollbar size / 2
+        // Scrollbar position = center of screen - scrollbar size / 2
         //      but limited to between 0 and (2048 - scrollbar size)
         double prevScrollbarSize = VIEW_SIZE / oldZoom;
         int screenCenterX = (int)(viewportOrigin.x + prevScrollbarSize / 2);
@@ -630,11 +647,16 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
         }
 
         Logger.getLogger(CS355Drawing.class.getName()).log(Level.INFO,
-                "scrollbar positions (x,y) = " + positionX + ", " + positionY);
+                "scrollbar positions (x,y) = " + positionX + ", " + positionY
+                + ", size: " + scrollbarSize + ", maxPos: " + maxScrollbarPos
+        );
 
         // Set positions of scrollbars
         GUIFunctions.setHScrollBarPosit(positionX);
         GUIFunctions.setVScrollBarPosit(positionY);
+        GUIFunctions.setHScrollBarMax(CANVAS_SIZE);
+        GUIFunctions.setVScrollBarMax(CANVAS_SIZE);
+
     }
 
     /**
