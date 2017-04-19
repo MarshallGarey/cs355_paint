@@ -73,8 +73,10 @@ public class View implements ViewRefresher, Observer {
      * @param g2d Used to draw graphics on the screen.
      */
     private void drawBackgroundImage(Graphics2D g2d) {
+        Square s = new Square(new Color(0,0,0),new Point2D.Double(0,0),0);
+        AffineTransform t = calculateTransformation(s);
+        g2d.setTransform(t);
         g2d.drawImage(CS355.getController().getImage().getImage(), null, 0, 0);
-        // TODO: use affine transform (for scaling/zooming)
     }
 
     /**
