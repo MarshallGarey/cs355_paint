@@ -81,8 +81,8 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     // Virtual camera
     private final double ORIGINAL_CAMERA_ROTATION = 0;
-    private final double CAMERA_START_X = 35;
-    private final double CAMERA_START_Y = 15;
+    private final double CAMERA_START_X = 0;
+    private final double CAMERA_START_Y = 0;
     private final double CAMERA_START_Z = -50;
 //    private final double CAMERA_START_X = 0;
 //    private final double CAMERA_START_Y = 0;

@@ -133,6 +133,7 @@ public class View implements ViewRefresher, Observer {
         double data[][] = transformation.getMatrix();
         data[0][0] = data[0][2] = 1024;
         data[1][1] = -1024;
+        data[1][2] = 1024;
         data[2][2] = 1;
 
         // Drop z (the 3rd element) of the point.
@@ -210,10 +211,10 @@ public class View implements ViewRefresher, Observer {
         // Build the translation matrix.
         Matrix translation = new Matrix(4);
         translation.makeIdentity();
-        double m2[][] = translation.getMatrix();
-        m2[0][3] = -scene.getCameraPosition().x;
-        m2[1][3] = -scene.getCameraPosition().y;
-        m2[2][3] = -scene.getCameraPosition().z;
+        double matrix[][] = translation.getMatrix();
+        matrix[0][3] = -scene.getCameraPosition().x;
+        matrix[1][3] = -scene.getCameraPosition().y;
+        matrix[2][3] = -scene.getCameraPosition().z;
 
         // Multiply out
         return translation.matrixMultiply(rotation);
