@@ -1,15 +1,20 @@
 package cs355.model.drawing;
 
 import cs355.model.image.CS355Image;
+import sun.rmi.runtime.Log;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by Marshall Garey
  */
 public class Image extends CS355Image {
+
+    private final double EDGE_DETECT_SCALE = 1.3;
 
     public Image () {
         super();
@@ -47,7 +52,109 @@ public class Image extends CS355Image {
 
     @Override
     public void edgeDetection() {
+        // Temporary image to write data to.
+        Image newImage = new Image(getWidth(), getHeight());
+        int[] rgb = new int[3];
+        int width = getWidth();
+        int height = getHeight();
 
+        // For each pixel
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+
+                // Zero the border pixels
+                if ((x == 0 || y == 0 || x == width-1 || y == height-1)) {
+                    rgb[0] = rgb[1] = rgb[2] = 0;
+                    newImage.setPixel(x, y, rgb);
+                }
+                // Edge detection on the rest.
+                else {
+
+                    // Perform the gradient magnitude for edge detection.
+                    gradientMagnitude(rgb, x, y);
+
+                    // Set the pixel in the new image to preserve old data.
+                    newImage.setPixel(x, y, rgb);
+
+                }
+            }
+        }
+
+        // Update this image.
+        this.setPixels(newImage);
+    }
+
+    private void gradientMagnitude(int[] retPixel, int x, int y) {
+
+        int[] neighbor = new int[3];
+        float[] hsb = new float[3];
+
+        // Soble kernel partial derivatives
+        double sobelX = 0;
+        double sobelY = 0;
+
+        // For each direction (x and y):
+        // Get the neighboring pixel
+        // Convert to HSB
+        // Apply sobel kernel on the brightness channel.
+        // Remember to divide by 8 at the end.
+
+        // Top-left neighbor (x and y)
+        getPixel(x - 1, y - 1, neighbor);
+        Color.RGBtoHSB(neighbor[0], neighbor[1], neighbor[2], hsb);
+        sobelX += -hsb[2];
+        sobelY += -hsb[2];
+
+        // Left neighbor
+        getPixel(x - 1, y, neighbor);
+        Color.RGBtoHSB(neighbor[0], neighbor[1], neighbor[2], hsb);
+        sobelX += -2*hsb[2];
+
+        // Bottom-left neighbor
+        getPixel(x - 1, y + 1, neighbor);
+        Color.RGBtoHSB(neighbor[0], neighbor[1], neighbor[2], hsb);
+        sobelX += -hsb[2];
+        sobelY += hsb[2];
+
+        // Top neighbor
+        getPixel(x, y - 1, neighbor);
+        Color.RGBtoHSB(neighbor[0], neighbor[1], neighbor[2], hsb);
+        sobelY += -2*hsb[2];
+
+        // Bottom neighbor
+        getPixel(x, y + 1, neighbor);
+        Color.RGBtoHSB(neighbor[0], neighbor[1], neighbor[2], hsb);
+        sobelY += 2*hsb[2];
+
+        // Top-right neighbor
+        getPixel(x + 1, y - 1, neighbor);
+        Color.RGBtoHSB(neighbor[0], neighbor[1], neighbor[2], hsb);
+        sobelX += hsb[2];
+        sobelY += -hsb[2];
+
+        // Right neighbor
+        getPixel(x + 1, y, neighbor);
+        Color.RGBtoHSB(neighbor[0], neighbor[1], neighbor[2], hsb);
+        sobelX += 2*hsb[2];
+
+        // Bottom-right neighbor
+        getPixel(x + 1, y + 1, neighbor);
+        Color.RGBtoHSB(neighbor[0], neighbor[1], neighbor[2], hsb);
+        sobelX += hsb[2];
+        sobelY += hsb[2];
+
+        // Divide results by 8
+        sobelX /= 8;
+        sobelY /= 8;
+
+        // Gradient magnitude: Compute the magnitude as if they sobelX and sobelY were elements in a vector
+        // Clip to the range [0,1] because this is the brightness (I probably don't actually need this
+        // Convert the brightness from the range [0,1] to [0,255]
+        // Use the result for all 3 rgb channels (it will be gray)
+        double resultBrightness = Math.sqrt(sobelX*sobelX + sobelY*sobelY);
+        resultBrightness *= 255 * EDGE_DETECT_SCALE;
+        if (resultBrightness > 255) resultBrightness = 255;
+        retPixel[0] = retPixel[1] = retPixel[2] = (int)resultBrightness;
     }
 
     @Override

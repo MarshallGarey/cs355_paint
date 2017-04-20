@@ -368,44 +368,58 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
 
     @Override
     public void doEdgeDetection() {
-        image.edgeDetection();
-        GUIFunctions.refresh();
+        if (image != null) {
+            image.edgeDetection();
+            GUIFunctions.refresh();
+        }
     }
 
     @Override
     public void doSharpen() {
-        image.sharpen();
-        GUIFunctions.refresh();
+        if (image != null) {
+            image.sharpen();
+            GUIFunctions.refresh();
+        }
     }
 
     @Override
     public void doMedianBlur() {
-        image.medianBlur();
-        GUIFunctions.refresh();
+        if (image != null) {
+            image.medianBlur();
+            GUIFunctions.refresh();
+        }
     }
 
     @Override
     public void doUniformBlur() {
-        image.uniformBlur();
-        GUIFunctions.refresh();
+        if (image != null) {
+            image.uniformBlur();
+            GUIFunctions.refresh();
+        }
     }
 
     @Override
     public void doGrayscale() {
-        image.grayscale();
-        GUIFunctions.refresh();
+        if (image != null) {
+            image.grayscale();
+            GUIFunctions.refresh();
+        }
     }
 
     @Override
     public void doChangeContrast(int contrastAmountNum) {
-        image.contrast(contrastAmountNum);
-        GUIFunctions.refresh();
+        if (image != null) {
+            image.contrast(contrastAmountNum);
+            GUIFunctions.refresh();
+        }
     }
 
     @Override
     public void doChangeBrightness(int brightnessAmountNum) {
-        image.brightness(brightnessAmountNum);
-        GUIFunctions.refresh();
+        if (image != null) {
+            image.brightness(brightnessAmountNum);
+            GUIFunctions.refresh();
+        }
     }
 
     @Override
