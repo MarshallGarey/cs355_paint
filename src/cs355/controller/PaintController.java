@@ -83,7 +83,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     private final double ORIGINAL_CAMERA_ROTATION = 0;
     private final double CAMERA_START_X = 35;
     private final double CAMERA_START_Y = 15;
-    private final double CAMERA_START_Z = 50;
+    private final double CAMERA_START_Z = -50;
 //    private final double CAMERA_START_X = 0;
 //    private final double CAMERA_START_Y = 0;
 //    private final double CAMERA_START_Z = 0;
@@ -283,14 +283,14 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
                             scene.getCameraPosition().y,
-                            scene.getCameraPosition().z - CAM_MOVE_DIFF);
+                            scene.getCameraPosition().z + CAM_MOVE_DIFF);
                     scene.setCameraPosition(newPos);
                     break;
                 case 'S': // Move backward
                     newPos = new Point3D(
                             scene.getCameraPosition().x,
                             scene.getCameraPosition().y,
-                            scene.getCameraPosition().z + CAM_MOVE_DIFF);
+                            scene.getCameraPosition().z - CAM_MOVE_DIFF);
                     scene.setCameraPosition(newPos);
                     break;
                 case 'Q': // Turn left

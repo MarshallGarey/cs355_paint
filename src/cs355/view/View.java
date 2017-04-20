@@ -216,7 +216,7 @@ public class View implements ViewRefresher, Observer {
         m2[2][3] = -scene.getCameraPosition().z;
 
         // Multiply out
-        return rotation.matrixMultiply(translation);
+        return translation.matrixMultiply(rotation);
     }
 
     private Matrix calculateRotationMatrix(CS355Scene scene) {
