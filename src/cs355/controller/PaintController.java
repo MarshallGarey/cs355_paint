@@ -344,6 +344,7 @@ public class PaintController implements CS355Controller, MouseListener, MouseMot
     public void toggleBackgroundDisplay() {
         if (image != null) {
             backgroundImageIsOn = !backgroundImageIsOn;
+            GUIFunctions.refresh();
         }
     }
 
