@@ -24,7 +24,9 @@ public class Matrix {
 
     public void makeIdentity() {
         matrix = new double[N][N];
-        matrix[0][0] = matrix[1][1] = matrix[2][2] = matrix[3][3] = 1;
+        for (int i = 0; i < N; i++) {
+            matrix[i][i] = 1;
+        }
     }
 
     /**

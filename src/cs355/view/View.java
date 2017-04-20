@@ -17,8 +17,6 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by Marshall on 1/24/2017.
@@ -29,7 +27,7 @@ public class View implements ViewRefresher, Observer {
     private HighlightShape highlightShape;
     public static final int HANDLE_RADIUS = 4;
     private final int NEAR_PLANE = 1;
-    private final int FAR_PLANE = 80;
+    private final int FAR_PLANE = 200;
 
     /**
      * Default constructor
@@ -68,6 +66,11 @@ public class View implements ViewRefresher, Observer {
      */
     private void drawScene(Graphics2D g2d) {
 
+        // Zooming and scrolling:
+        Square s = new Square(new Color(0,0,0),new Point2D.Double(0,0),0);
+        AffineTransform t = calculateTransformation(s);
+        g2d.setTransform(t);
+
         // Build the transformation matrix. Only do this once, since it's the same.
         Matrix worldToCamera = calculateWorldToCameraTransformation();
 
@@ -76,6 +79,8 @@ public class View implements ViewRefresher, Observer {
 
         ArrayList<Instance> sceneModels = CS355.getController().getScene().instances();
         for (Instance model : sceneModels) {
+            // Set the color once for each model.
+            g2d.setColor(model.getColor());
             for (Line3D line : model.getModel().getLines()) {
 
                 // Build 3D homogeneous world-space coordinates
@@ -104,14 +109,8 @@ public class View implements ViewRefresher, Observer {
                 if (isInViewFrustum(startPoint, endPoint)) {
 
                     // Map clip space coordinate to canonical coordinate ([-1,1], where center is origin)
-                    startPoint[0] /= startPoint[3];
-                    startPoint[1] /= startPoint[3];
-                    startPoint[2] /= startPoint[3];
-                    startPoint[3] = 1;
-                    endPoint[0] /= endPoint[3];
-                    endPoint[1] /= endPoint[3];
-                    endPoint[2] /= endPoint[3];
-                    endPoint[3] = 1;
+                    clipToCanonical(startPoint);
+                    clipToCanonical(endPoint);
 
                     // Map canonical coordinate to screen coordinate ([0,2047], where upper-left is origin)
                     double screenStart[] = canonicalToScreen(startPoint);
@@ -132,7 +131,6 @@ public class View implements ViewRefresher, Observer {
     private double[] canonicalToScreen(double[] point) {
         Matrix transformation = new Matrix(3);
         double data[][] = transformation.getMatrix();
-        // TODO: rather than hardcoding half the screen width, get it from the controller (use the zoom level)
         data[0][0] = data[0][2] = 1024;
         data[1][1] = -1024;
         data[2][2] = 1;
@@ -141,8 +139,20 @@ public class View implements ViewRefresher, Observer {
         double p[] = new double[3];
         p[0] = point[0];
         p[1] = point[1];
-        p[2] = point[3];
+        p[2] = 1;
         return transformation.vectorMultiply(p);
+    }
+
+    /**
+     * Transform clip space coordinates to canonical coordinates,
+     * which are in the range [-1,1] and centered at 0
+     * @param point Point to transform
+     */
+    private void clipToCanonical(double[] point) {
+        point[0] /= point[3];
+        point[1] /= point[3];
+//        point[2] /= point[3]; // we don't actually need this
+        point[3] = 1;
     }
 
     /**
@@ -160,11 +170,11 @@ public class View implements ViewRefresher, Observer {
         double wStart = startPoint[3];
         double wEnd = endPoint[3];
         double xStart = startPoint[0];
-        double xEnd = startPoint[0];
+        double xEnd = endPoint[0];
         double yStart = startPoint[1];
-        double yEnd = startPoint[1];
+        double yEnd = endPoint[1];
         double zStart = startPoint[2];
-        double zEnd = startPoint[2];
+        double zEnd = endPoint[2];
 
         // First test the near plane.
         if (zStart < -wStart || zEnd < -wEnd) {
@@ -195,15 +205,7 @@ public class View implements ViewRefresher, Observer {
         // Build the world to camera transformation matrix: translation and rotation:
 
         // Build the rotation matrix.
-        // TODO: Get camera angle. I'm hardcoding it for now.
-        // Camera angle will only change x and z components. y will always point directly up (1).
-        // Camera rotation is in radians. cos(angle) gives x, sin(angle) gives z
-        Matrix rotation = new Matrix(4);
-        double m0[][] = rotation.getMatrix();
-        m0[1][1] = 1; // y is up.
-        m0[0][0] = 1; // x is right.
-        m0[2][2] = -1; // z is out (shell has inverted z direction)
-        m0[3][3] = 1;
+        Matrix rotation = calculateRotationMatrix(scene);
 
         // Build the translation matrix.
         Matrix translation = new Matrix(4);
@@ -217,10 +219,38 @@ public class View implements ViewRefresher, Observer {
         return rotation.matrixMultiply(translation);
     }
 
+    private Matrix calculateRotationMatrix(CS355Scene scene) {
+
+        // Camera angle will only change x and z components. y will always point directly up (1).
+        // Camera rotation is in radians. cos(angle) gives x, sin(angle) gives z
+        Matrix rotation = new Matrix(4);
+        double m0[][] = rotation.getMatrix();
+        double theta = scene.getCameraRotation();
+        double xRot = Math.cos(theta);
+        double zRot = Math.sin(theta);
+        m0[0][0] = xRot;
+        m0[2][2] = -xRot; // inverted z direction
+        m0[0][2] = -zRot;
+        m0[2][0] = zRot;
+        m0[1][1] = m0[3][3] = 1;
+
+//        m0[1][1] = 1; // y is up.
+//        m0[0][0] = 1; // x is right.
+//        m0[2][2] = -1; // z is out (shell has inverted z direction)
+//        m0[3][3] = 1;
+
+        return rotation;
+    }
+
     private Matrix calculateClipMatrix() {
         Matrix clip = new Matrix(4);
+        // zoom=1/(tan(fieldOfView/2))
+        // With fieldOfView = 90degrees,
+        // zoom = 1 / (tan(45 degrees)) = 1
         double zoomX = 1;
         double zoomY = 1;
+
+        // Local pointer
         double matrixData[][] = clip.getMatrix();
         matrixData[0][0] = zoomX;
         matrixData[1][1] = zoomY;
